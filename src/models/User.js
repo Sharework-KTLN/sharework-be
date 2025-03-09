@@ -16,7 +16,6 @@ const User = sequelize.define(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     full_name: {
       type: DataTypes.STRING,
@@ -28,20 +27,16 @@ const User = sequelize.define(
     },
     phone: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: true,
     },
     profile_image: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    create_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
   },
   {
     tableName: "users",
+    timestamps: true,
   }
 );
 
