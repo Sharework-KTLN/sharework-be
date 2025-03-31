@@ -13,27 +13,49 @@ const Job = sequelize.define(
     },
     title: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false, // Vị trí cần tuyển
     },
-    description: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    required_skills: {
+      type: DataTypes.STRING, // Yêu cầu kỹ năng
     },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    requirement: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    industry: {
+      type: DataTypes.STRING, // Lĩnh vực cần tuyển
     },
     salary_range: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false, // Mức lương
     },
-    location: {
+    salary_type: {
+      type: DataTypes.STRING, // Hình thức lương (net/gross, theo giờ/tháng, v.v.)
+    },
+    deadline: {
+      type: DataTypes.DATE, // Hạn bài đăng
+    },
+    work_type: {
+      type: DataTypes.STRING, // Hình thức làm việc (toàn thời gian, bán thời gian, remote, v.v.)
+    },
+    work_location: {
+      type: DataTypes.STRING, // Địa chỉ làm việc
+    },
+    work_schedule: {
+      type: DataTypes.STRING, // Thời gian làm việc
+    },
+    description: {
+      type: DataTypes.TEXT, // Mô tả công việc
+    },
+    vacancies: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1, // Số lượng tuyển dụng (mặc định 1)
+    },
+    status: {
       type: DataTypes.STRING,
-      allowNull: false,
+      defaultValue: "open", // Trạng thái công việc (open, closed, expired, draft)
+    },
+    benefits: {
+      type: DataTypes.TEXT, // Phúc lợi công việc (bảo hiểm, thưởng, nghỉ phép, v.v.)
+    },
+    experience_required: {
+      type: DataTypes.STRING, // Kinh nghiệm yêu cầu (1-2 năm, không yêu cầu, v.v.)
     },
   },
   {

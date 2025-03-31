@@ -196,4 +196,5 @@ router.post("/recruiter/register", async (req, res) => {
     res.status(500).json({ err: "Lỗi máy chủ, vui lòng thử lại!" });
   }
 });
+
 module.exports = router;
