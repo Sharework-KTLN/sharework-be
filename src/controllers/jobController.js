@@ -68,4 +68,25 @@ const getAllJobsByRecruiter = async (req, res) => {
   }
 };
 
-module.exports = { createJob, getAllJobsByRecruiter };
+const getJobByJobId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Kiểm tra job_id có hợp lệ không
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ message: "job_id không hợp lệ" });
+    }
+
+    const job_details = await Job.findOne({ where: { id: Number(id) } });
+
+    if (!job_details) {
+      return res.status(404).json({ message: "Không có bài đăng nào" });
+    }
+
+    res.status(200).json(job_details);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi Server", error: error.message });
+  }
+};
+
+module.exports = { createJob, getAllJobsByRecruiter, getJobByJobId };
