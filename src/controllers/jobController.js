@@ -17,6 +17,8 @@ const createJob = async (req, res) => {
       work_schedule,
       description,
       vacancies,
+      recruiter_id,
+      company_id,
     } = req.body;
     // Chuyển đổi deadline sang kiểu DATE
     const formattedDeadline = dayjs(deadline, "YYYY-MM-DD").toDate();
@@ -33,8 +35,8 @@ const createJob = async (req, res) => {
         work_schedule,
         description,
         vacancies,
-        recruiter_id: 1,
-        company_id: 1,
+        recruiter_id,
+        company_id,
       });
       res
         .status(201)
@@ -78,11 +80,12 @@ const getJobByJobId = async (req, res) => {
     }
 
     const job_details = await Job.findOne({ where: { id: Number(id) } });
-
+    // Nếu không có bài đăng nào, trả về mảng rỗng
     if (!job_details) {
-      return res.status(404).json({ message: "Không có bài đăng nào" });
+      return res.status(200).json([]); // Trả về mảng rỗng thay vì lỗi 404
     }
 
+    // Trả về danh sách bài đăng
     res.status(200).json(job_details);
   } catch (error) {
     res.status(500).json({ message: "Lỗi Server", error: error.message });
