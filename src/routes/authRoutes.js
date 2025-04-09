@@ -93,6 +93,7 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role: "candidate",
+      file_url: "",
     });
 
     res.status(201).json({ message: "Đăng ký thành công!" });
@@ -154,8 +155,10 @@ router.post("/recruiter/register", async (req, res) => {
     const newRecruiter = await User.create({
       full_name,
       email,
+      gender,
       password: hashedPassword,
       role: "recruiter",
+      file_url: "",
     });
 
     // Tạo công ty nếu có đủ thông tin
