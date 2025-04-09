@@ -2,6 +2,14 @@ const dayjs = require("dayjs");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const User = require("../models/User");
+const {
+  WORK_TYPE_MAP,
+  SALARY_RANGE_MAP,
+  INDUSTRY_MAP,
+  EXPERIENCE_MAP,
+  EDUCATION_MAP,
+  WORK_LEVEL_MAP,
+} = require("../utils/fieldDisplayMap"); // đường dẫn đúng tùy theo dự án
 
 // Create a new job
 const createJob = async (req, res) => {
@@ -33,19 +41,21 @@ const createJob = async (req, res) => {
       const newJob = await Job.create({
         title,
         required_skills,
-        specialize,
-        salary_range,
+        specialize: INDUSTRY_MAP[specialize] || specialize,
+        salary_range: SALARY_RANGE_MAP[salary_range] || salary_range,
         salary_type,
         deadline: formattedDeadline, // Lưu vào DB
-        work_type,
+        work_type: WORK_TYPE_MAP[work_type] || work_type,
         work_location,
         work_schedule,
         description,
         vacancies,
         candidate_required,
-        experience_required,
-        educational_level,
-        work_level,
+        experience_required:
+          EXPERIENCE_MAP[experience_required] || experience_required,
+        educational_level:
+          EDUCATION_MAP[educational_level] || educational_level,
+        work_level: WORK_LEVEL_MAP[work_level] || work_level,
         benefits,
         recruiter_id,
         company_id,
