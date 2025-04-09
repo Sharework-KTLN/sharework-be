@@ -13,12 +13,7 @@ const Resume = sequelize.define(
     file_url: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    create_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
+    }
   },
   {
     tableName: "resumes",

@@ -15,47 +15,67 @@ const Job = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false, // Vị trí cần tuyển
     },
-    required_skills: {
-      type: DataTypes.STRING, // Yêu cầu kỹ năng
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "open", // Trạng thái công việc (open, closed, expired, draft)
     },
-    industry: {
-      type: DataTypes.STRING, // Lĩnh vực cần tuyển
+    experience_required: {
+      type: DataTypes.STRING, // Kinh nghiệm yêu cầu (1-2 năm, không yêu cầu, v.v.)
     },
     salary_range: {
       type: DataTypes.STRING,
       allowNull: false, // Mức lương
     },
-    salary_type: {
-      type: DataTypes.STRING, // Hình thức lương (net/gross, theo giờ/tháng, v.v.)
-    },
-    deadline: {
-      type: DataTypes.DATE, // Hạn bài đăng
-    },
-    work_type: {
-      type: DataTypes.STRING, // Hình thức làm việc (toàn thời gian, bán thời gian, remote, v.v.)
-    },
     work_location: {
       type: DataTypes.STRING, // Địa chỉ làm việc
     },
-    work_schedule: {
-      type: DataTypes.STRING, // Thời gian làm việc
+    specialize: {
+      type: DataTypes.STRING, // Lĩnh vực cần tuyển
     },
-    description: {
-      type: DataTypes.TEXT, // Mô tả công việc
+    educational_level: {
+      type: DataTypes.TEXT, // Trình độ học vấn (Cao đẳng, Đại học, ...)
+    },
+    work_level: {
+      type: DataTypes.TEXT, // Cấp bậc làm việc (Thực tập sinh, nhân viên, ...)
+    },
+    work_type: {
+      type: DataTypes.STRING, // Hình thức làm việc (toàn thời gian, bán thời gian, remote, v.v.)
     },
     vacancies: {
       type: DataTypes.INTEGER,
       defaultValue: 1, // Số lượng tuyển dụng (mặc định 1)
     },
-    status: {
-      type: DataTypes.STRING,
-      defaultValue: "open", // Trạng thái công việc (open, closed, expired, draft)
+    description: {
+      type: DataTypes.TEXT, // Mô tả công việc
+    },
+    required_skills: {
+      type: DataTypes.STRING, // Yêu cầu kỹ năng
+    },
+    candidate_required: {
+      type: DataTypes.TEXT, // Yêu cầu ứng viên
+    },
+    work_schedule: {
+      type: DataTypes.STRING, // Thời gian làm việc
     },
     benefits: {
       type: DataTypes.TEXT, // Phúc lợi công việc (bảo hiểm, thưởng, nghỉ phép, v.v.)
     },
-    experience_required: {
-      type: DataTypes.STRING, // Kinh nghiệm yêu cầu (1-2 năm, không yêu cầu, v.v.)
+    deadline: {
+      type: DataTypes.DATE, // Hạn bài đăng
+    },
+    company_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Company,
+        key: 'id',
+      },
+    },
+    recruiter_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
+        key: 'id',
+      },
     },
   },
   {
