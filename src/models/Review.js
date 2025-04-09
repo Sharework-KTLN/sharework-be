@@ -18,12 +18,7 @@ const Review = sequelize.define(
     rating: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    create_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
+    }
   },
   {
     tableName: "reviews",
