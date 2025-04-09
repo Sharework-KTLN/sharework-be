@@ -268,9 +268,119 @@ const getJobDetailByCandidate = async (req, res) => {
   }
 };
 
+const getJobsByAdmin = async (req, res) => {
+  try {
+    const jobs = await Job.findAll({
+      include: [
+        {
+          model: Company,
+          attributes: ["name", "logo"],
+        },
+        {
+          model: User,
+          as: "recruiter",
+          attributes: ["full_name"],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const formattedJobs = jobs.map(job => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      status: job.status,
+      experience_required: job.experience_required || "",
+      salary_range: job.salary_range,
+      work_location: job.work_location,
+      created_at: job.createdAt,
+      updated_at: job.updatedAt,
+      company_name: job.Company?.name || "Không rõ",
+      recruiter_name: job.recruiter?.full_name || "Không rõ",
+      company_logo: job.Company?.logo || "",
+      company_id: job.company_id,
+      recruiter_id: job.recruiter_id,
+      required_skills: job.required_skills,
+      specialize: job.specialize,
+      salary_type: job.salary_type,
+      deadline: job.deadline,
+      work_type: job.work_type,
+      work_schedule: job.work_schedule,
+      vacancies: job.vacancies,
+      benefits: job.benefits,
+      educational_level: job.educational_level,
+      work_level: job.work_level,
+      candidate_required: job.candidate_required,
+    }));
+
+    res.status(200).json(formattedJobs);
+  } catch (error) {
+    console.error("Error fetching jobs for admin:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getJobDetailByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const job = await Job.findOne({
+      where: { id },
+      include: [
+        {
+          model: Company,
+          attributes: ["name", "logo"],
+        },
+        {
+          model: User,
+          as: "recruiter",
+          attributes: ["full_name"],
+        },
+      ],
+    });
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    const formattedJob = {
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      status: job.status,
+      experience_required: job.experience_required || "",
+      salary_range: job.salary_range,
+      work_location: job.work_location,
+      created_at: job.createdAt,
+      updated_at: job.updatedAt,
+      company_name: job.Company?.name || "Không rõ",
+      recruiter_name: job.recruiter?.full_name || "Không rõ",
+      company_logo: job.Company?.logo || "",
+      company_id: job.company_id,
+      recruiter_id: job.recruiter_id,
+      required_skills: job.required_skills,
+      specialize: job.specialize,
+      salary_type: job.salary_type,
+      deadline: job.deadline,
+      work_type: job.work_type,
+      work_schedule: job.work_schedule,
+      vacancies: job.vacancies,
+      benefits: job.benefits,
+      educational_level: job.educational_level,
+      work_level: job.work_level,
+      candidate_required: job.candidate_required,
+    };
+
+    res.status(200).json(formattedJob);
+  } catch (error) {
+    console.error("Error fetching job detail:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 module.exports = {
   createJob,
   getAllJobsByRecruiter,
   getAllJobsByCandidate,
   getJobDetailByCandidate,
+  getJobsByAdmin,
+  getJobDetailByAdmin
 };
