@@ -10,7 +10,7 @@ const createJob = async (req, res) => {
     const {
       title,
       required_skills,
-      industry,
+      specialize,
       salary_range,
       salary_type,
       deadline,
@@ -19,13 +19,13 @@ const createJob = async (req, res) => {
       work_schedule,
       description,
       vacancies,
-      recruiter_id,
-      company_id,
       candidate_required,
       experience_required,
-      education,
-      position,
+      educational_level,
+      work_level,
       benefits,
+      recruiter_id,
+      company_id,
     } = req.body;
     // Chuyển đổi deadline sang kiểu DATE
     const formattedDeadline = dayjs(deadline, "YYYY-MM-DD").toDate();
@@ -33,7 +33,7 @@ const createJob = async (req, res) => {
       const newJob = await Job.create({
         title,
         required_skills,
-        industry,
+        specialize,
         salary_range,
         salary_type,
         deadline: formattedDeadline, // Lưu vào DB
@@ -42,12 +42,18 @@ const createJob = async (req, res) => {
         work_schedule,
         description,
         vacancies,
+        candidate_required,
+        experience_required,
+        educational_level,
+        work_level,
+        benefits,
         recruiter_id,
         company_id,
       });
-      res
-        .status(201)
-        .json({ message: "Thêm bài đăng thành công!", job: newJob });
+      res.status(201).json({
+        message: "Thêm bài đăng thành công, chờ admin duyệt!",
+        job: newJob,
+      });
     } catch (dbError) {
       console.error("Lỗi khi thêm vào CSDL: ", dbError);
       res.status(500).json({
@@ -233,7 +239,7 @@ const getJobDetailByCandidate = async (req, res) => {
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
       required_skills: job.required_skills,
-      industry: job.industry,
+      specialize: job.specialize,
       salary_type: job.salary_type,
       deadline: job.deadline,
       work_type: job.work_type,
