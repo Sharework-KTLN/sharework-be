@@ -11,12 +11,10 @@ const Application = sequelize.define(
       primaryKey: true,
     },
     status: {
-      type: DataTypes.ENUM("pending", "reviewed", "accepted", "rejected"),
-      allowNull: false,
+      type: DataTypes.ENUM("pending", "reviewed", "accepted", "rejected")
     },
     cover_letter: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: DataTypes.STRING
     },
   },
   {

@@ -16,10 +16,19 @@ const User = sequelize.define(
     },
     password: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     full_name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    date_of_birth: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     role: {
       type: DataTypes.ENUM("admin", "candidate", "recruiter"),
@@ -33,10 +42,32 @@ const User = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    address: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    school: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    course: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    specialize: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    file_url: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
   },
   {
     tableName: "users",
-    timestamps: true,
+    timestamps: true, // tạo createdAt và updatedAt
+    underscored: true,
+    comment: "store users data",
   }
 );
 
