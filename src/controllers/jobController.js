@@ -19,6 +19,11 @@ const createJob = async (req, res) => {
       vacancies,
       recruiter_id,
       company_id,
+      candidate_required,
+      experience_required,
+      education,
+      position,
+      benefits,
     } = req.body;
     // Chuyển đổi deadline sang kiểu DATE
     const formattedDeadline = dayjs(deadline, "YYYY-MM-DD").toDate();
@@ -54,6 +59,70 @@ const createJob = async (req, res) => {
   }
 };
 
+// Update a job
+const updateJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      required_skills,
+      industry,
+      salary_range,
+      salary_type,
+      deadline,
+      work_type,
+      work_location,
+      work_schedule,
+      description,
+      vacancies,
+      recruiter_id,
+      company_id,
+    } = req.body;
+
+    // Chuyển đổi deadline sang kiểu Date (nếu có)
+    const formattedDeadline = deadline
+      ? dayjs(deadline, "YYYY-MM-DD").toDate()
+      : undefined;
+
+    // Tạo object chứa các trường cần cập nhật
+    const updatedFields = {
+      title,
+      required_skills,
+      industry,
+      salary_range,
+      salary_type,
+      deadline: formattedDeadline,
+      work_type,
+      work_location,
+      work_schedule,
+      description,
+      vacancies,
+      recruiter_id,
+      company_id,
+    };
+
+    // Xoá các field undefined để tránh ghi đè giá trị cũ bằng undefined
+    Object.keys(updatedFields).forEach(
+      (key) => updatedFields[key] === undefined && delete updatedFields[key]
+    );
+
+    // Tìm và cập nhật job
+    const updatedJob = await Job.findByPk(id);
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Không tìm thấy bài đăng!" });
+    }
+
+    await updatedJob.update(updatedFields);
+
+    res
+      .status(200)
+      .json({ message: "Cập nhật bài đăng thành công!", job: updatedJob });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật bài đăng: ", error);
+    res.status(500).json({ message: "Lỗi Server!", error: error.message });
+  }
+};
+
 // Get all jobs by recruiter_id
 const getAllJobsByRecruiter = async (req, res) => {
   try {
@@ -69,7 +138,7 @@ const getAllJobsByRecruiter = async (req, res) => {
     res.status(500).json({ message: "Lỗi Server", error: error.message });
   }
 };
-
+// Get all jobs by job_id
 const getJobByJobId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,4 +161,4 @@ const getJobByJobId = async (req, res) => {
   }
 };
 
-module.exports = { createJob, getAllJobsByRecruiter, getJobByJobId };
+module.exports = { createJob, updateJob, getAllJobsByRecruiter, getJobByJobId };
