@@ -10,6 +10,10 @@ const SaveJob = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    saved_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,  // Lưu thời gian hiện tại khi yêu thích công việc
     }
   },
   {
@@ -27,6 +31,9 @@ SaveJob.belongsTo(User, { as: "candidate", foreignKey: "candidate_id" });
 Job.hasMany(SaveJob, {
   foreignKey: "job_id",
 });
-SaveJob.belongsTo(Job);
+SaveJob.belongsTo(Job, {
+  foreignKey: 'job_id',
+  as: 'job'
+});
 
 module.exports = SaveJob;
