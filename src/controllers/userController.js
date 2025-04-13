@@ -14,7 +14,7 @@ const saveJobByUser = async (req, res) => {
             return res.status(400).json({ message: "Thiếu userId hoặc jobId" });
         }
 
-        // Kiểm tra xem đã lưu chưa
+        // Kiểm tra xem công việc đã được lưu chưa
         const existing = await SaveJob.findOne({
             where: {
                 candidate_id: userId,
@@ -26,13 +26,41 @@ const saveJobByUser = async (req, res) => {
             return res.status(400).json({ message: "Công việc đã được lưu trước đó." });
         }
 
+        // Lưu công việc vào bảng SaveJob
         const savedJob = await SaveJob.create({
             candidate_id: userId,
             job_id: jobId,
         });
 
-        return res.status(201).json({ message: "Lưu công việc thành công", savedJob });
-    }  catch (error) {
+        // Trả về thông tin công việc đã lưu, bao gồm cả thông tin công ty và người tuyển dụng
+        const job = await Job.findOne({
+            where: { id: jobId },
+            include: [
+                {
+                    model: Company,
+                    as: "company",
+                    attributes: ["id", "name", "logo"]
+                }
+            ]
+        });
+
+        if (!job) {
+            return res.status(404).json({ message: "Không tìm thấy công việc" });
+        }
+
+        // Trả về thông tin về công việc đã lưu cùng với thông tin công ty và người tuyển dụng
+        return res.status(201).json({
+            message: "Lưu công việc thành công",
+            savedJob: {
+                id: savedJob.id,
+                job_id: job.id,
+                candidate_id: userId,
+                saved_at: savedJob.saved_at,
+                job: job // Lấy đầy đủ thông tin công việc
+            }
+        });
+
+    } catch (error) {
         console.error("Lỗi khi lưu job:", error);
         return res.status(500).json({ message: "Lỗi server" });
     }
