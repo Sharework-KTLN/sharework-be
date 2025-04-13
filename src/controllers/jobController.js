@@ -186,8 +186,8 @@ const getAllJobsByCandidate = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ", // Lấy tên công ty nếu có
-      recruiter_name: job.recruiter?.full_name || "Không rõ", // Lấy tên người tuyển dụng nếu có
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
       company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
@@ -245,8 +245,8 @@ const getJobDetailByCandidate = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ",
-      recruiter_name: job.recruiter?.full_name || "Không rõ",
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
       company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,

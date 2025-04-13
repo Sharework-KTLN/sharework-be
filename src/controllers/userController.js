@@ -7,32 +7,32 @@ const Company = require("../models/Company");
 const saveJobByUser = async (req, res) => {
     try {
         console.log(req.user);
-        const { jobId } = req.body;
-        const userId = req.user?.id; // hoặc lấy từ session/token tùy bạn dùng gì
-  
+        const { jobId } = req.params;
+        const userId = req.user?.id;
+
         if (!userId || !jobId) {
             return res.status(400).json({ message: "Thiếu userId hoặc jobId" });
         }
-  
+
         // Kiểm tra xem đã lưu chưa
         const existing = await SaveJob.findOne({
             where: {
-            candidate_id: userId,
-            job_id: jobId,
+                candidate_id: userId,
+                job_id: jobId,
             },
         });
-  
+
         if (existing) {
             return res.status(400).json({ message: "Công việc đã được lưu trước đó." });
         }
-  
+
         const savedJob = await SaveJob.create({
             candidate_id: userId,
             job_id: jobId,
         });
-  
+
         return res.status(201).json({ message: "Lưu công việc thành công", savedJob });
-    }   catch (error) {
+    }  catch (error) {
         console.error("Lỗi khi lưu job:", error);
         return res.status(500).json({ message: "Lỗi server" });
     }
@@ -83,7 +83,35 @@ const getJobsFavorite = async (req, res) => {
     }
 };
 
+const unsaveJobByUser = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const { jobId } = req.params; // Lấy jobId từ URL
+
+        if (!userId || !jobId) {
+            return res.status(400).json({ message: "Thiếu userId hoặc jobId" });
+        }
+
+        const deleted = await SaveJob.destroy({
+            where: {
+                candidate_id: userId,
+                job_id: jobId,
+            },
+        });
+
+        if (!deleted) {
+            return res.status(404).json({ message: "Không tìm thấy công việc đã lưu" });
+        }
+
+        res.status(200).json({ message: "Đã bỏ lưu công việc" });
+    } catch (error) {
+        console.error("Lỗi khi xóa công việc đã lưu:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+};
+
 module.exports = {
     saveJobByUser,
-    getJobsFavorite
+    getJobsFavorite,
+    unsaveJobByUser
 };
