@@ -163,6 +163,7 @@ const getAllJobsByCandidate = async (req, res) => {
       include: [
         {
           model: Company, // Liên kết với Company để lấy thông tin công ty
+          as: "company",
           attributes: ["name", "logo"], // Lấy tên công ty
         },
         {
@@ -185,9 +186,9 @@ const getAllJobsByCandidate = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ", // Lấy tên công ty nếu có
-      recruiter_name: job.recruiter?.full_name || "Không rõ", // Lấy tên người tuyển dụng nếu có
-      company_logo: job.Company?.logo || "",
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
+      company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
       required_skills: job.required_skills,
@@ -219,6 +220,7 @@ const getJobDetailByCandidate = async (req, res) => {
       include: [
         {
           model: Company,
+          as: "company",
           attributes: ["name", "logo"],
         },
         {
@@ -243,9 +245,9 @@ const getJobDetailByCandidate = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ",
-      recruiter_name: job.recruiter?.full_name || "Không rõ",
-      company_logo: job.Company?.logo || "",
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
+      company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
       required_skills: job.required_skills,
@@ -274,6 +276,7 @@ const getJobsByAdmin = async (req, res) => {
       include: [
         {
           model: Company,
+          as: 'company',
           attributes: ["name", "logo"],
         },
         {
@@ -295,9 +298,9 @@ const getJobsByAdmin = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ",
-      recruiter_name: job.recruiter?.full_name || "Không rõ",
-      company_logo: job.Company?.logo || "",
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
+      company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
       required_skills: job.required_skills,
@@ -328,6 +331,7 @@ const getJobDetailByAdmin = async (req, res) => {
       include: [
         {
           model: Company,
+          as: 'company',
           attributes: ["name", "logo"],
         },
         {
@@ -352,9 +356,9 @@ const getJobDetailByAdmin = async (req, res) => {
       work_location: job.work_location,
       created_at: job.createdAt,
       updated_at: job.updatedAt,
-      company_name: job.Company?.name || "Không rõ",
-      recruiter_name: job.recruiter?.full_name || "Không rõ",
-      company_logo: job.Company?.logo || "",
+      company_name: job.company ? job.company.name : "Không rõ", // Lấy tên công ty nếu có
+      recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ", // Lấy tên người tuyển dụng nếu có
+      company_logo: job.company ? job.company.logo : "",
       company_id: job.company_id,
       recruiter_id: job.recruiter_id,
       required_skills: job.required_skills,

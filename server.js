@@ -19,6 +19,12 @@ const Resume = require("./src/models/Resume");
 const Review = require("./src/models/Review");
 const SaveJob = require("./src/models/SaveJob");
 const User = require("./src/models/User");
+const Skill = require("./src/models/Skill");
+const Major = require("./src/models/Major");
+const UserSkill = require("./src/models/UserSkill");
+const UserInterestedMajor = require("./src/models/UserInterestedMajor");
+
+require("./src/models/association");
 
 // middleware
 app.use(express.json());

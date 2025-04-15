@@ -88,7 +88,11 @@ const Job = sequelize.define(
 Company.hasMany(Job, {
   foreignKey: "company_id",
 });
-Job.belongsTo(Company);
+
+Job.belongsTo(Company, {
+  foreignKey: "company_id",
+  as: "company"
+});
 
 User.hasMany(Job, {
   foreignKey: "recruiter_id",
