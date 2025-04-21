@@ -2,6 +2,8 @@ const dayjs = require("dayjs");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const User = require("../models/User");
+const { getTfidfScore } = require("../utils/tfidf");
+
 const {
   WORK_TYPE_MAP,
   SALARY_RANGE_MAP,
@@ -159,6 +161,13 @@ const getAllJobsByRecruiter = async (req, res) => {
 
 const getAllJobsByCandidate = async (req, res) => {
   try {
+    // ------------Ứng dụng thuật toán tf-idf để gợi ý việc làm phù hợp------------
+    // 1. Lấy tất cả các công việc từ cơ sở dữ liệu
+    // 2. Lấy tất cả công việc: người dùng đã ứng tuyển, người dùng đã yêu thích
+    // 3. Tính toán độ tương đồng giữa các công việc và người dùng (áp dùng TF-IDF)
+    // 4. Sắp xếp công việc theo độ tương đồng
+    // 5. Định dạng lại dữ liệu công việc trước khi trả về cho client
+    // 6. Trả về danh sách công việc đã được định dạng
     const jobs = await Job.findAll({
       include: [
         {
@@ -211,6 +220,99 @@ const getAllJobsByCandidate = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+// API lấy tất cả các công việc, đồng thời tính toán điểm TF-IDF và sắp xếp theo độ phù hợp
+// const getAllJobsByCandidate = async (req, res) => {
+//   try {
+//     const userId = req.user.id; // Lấy userId từ token hoặc session
+
+//     // 1. Lấy tất cả công việc
+//     const jobs = await Job.findAll({
+//       include: [
+//         {
+//           model: Company,
+//           as: "company",
+//           attributes: ["name", "logo"],
+//         },
+//         {
+//           model: User,
+//           as: "recruiter",
+//           attributes: ["full_name"],
+//         },
+//       ],
+//       order: [["createdAt", "DESC"]],
+//     });
+
+//     // 2. Lấy các công việc mà người dùng đã ứng tuyển hoặc lưu
+//     const appliedJobs = await Application.findAll({
+//       where: { candidate_id: userId },
+//       attributes: ['job_id']
+//     });
+//     const savedJobs = await SaveJob.findAll({
+//       where: { user_id: userId },
+//       attributes: ['job_id']
+//     });
+
+//     const appliedAndSavedJobIds = [
+//       ...new Set([
+//         ...appliedJobs.map(job => job.job_id),
+//         ...savedJobs.map(job => job.job_id),
+//       ])
+//     ];
+
+//     // 3. Tính điểm TF-IDF cho tất cả công việc
+//     const jobScores = jobs.map(job => {
+//       const jobDescription = job.description || '';
+//       const jobTitle = job.title || '';
+//       const jobText = `${jobTitle} ${jobDescription}`; // Ghép tiêu đề và mô tả công việc
+
+//       // Tính điểm TF-IDF dựa trên mô tả và tiêu đề công việc
+//       const tfidfScore = getTFIDFScore(jobText, appliedAndSavedJobIds);
+
+//       return {
+//         job,
+//         score: tfidfScore, // Điểm TF-IDF
+//       };
+//     });
+
+//     // 4. Sắp xếp công việc theo điểm TF-IDF (công việc có điểm cao nhất sẽ xuất hiện đầu tiên)
+//     const sortedJobs = jobScores.sort((a, b) => b.score - a.score).map(jobScore => jobScore.job);
+
+//     // 5. Định dạng lại dữ liệu công việc
+//     const formattedJobs = sortedJobs.map((job) => ({
+//       id: job.id,
+//       title: job.title,
+//       description: job.description,
+//       status: job.status,
+//       experience_required: job.experience_required || "",
+//       salary_range: job.salary_range,
+//       work_location: job.work_location,
+//       created_at: job.createdAt,
+//       updated_at: job.updatedAt,
+//       company_name: job.company ? job.company.name : "Không rõ",
+//       recruiter_name: job.recruiter ? job.recruiter.full_name : "Không rõ",
+//       company_logo: job.company ? job.company.logo : "",
+//       company_id: job.company_id,
+//       recruiter_id: job.recruiter_id,
+//       required_skills: job.required_skills,
+//       industry: job.industry,
+//       salary_type: job.salary_type,
+//       deadline: job.deadline,
+//       work_type: job.work_type,
+//       work_schedule: job.work_schedule,
+//       vacancies: job.vacancies,
+//       benefits: job.benefits,
+//       educational_level: job.educational_level,
+//       work_level: job.work_level,
+//       candidate_required: job.candidate_required,
+//     }));
+
+//     // 6. Trả về dữ liệu đã được sắp xếp và định dạng
+//     res.status(200).json(formattedJobs);
+//   } catch (error) {
+//     console.error("Error fetching jobs:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// };
 
 const getJobDetailByCandidate = async (req, res) => {
   try {
@@ -276,7 +378,7 @@ const getJobsByAdmin = async (req, res) => {
       include: [
         {
           model: Company,
-          as: 'company',
+          as: "company",
           attributes: ["name", "logo"],
         },
         {
@@ -285,10 +387,10 @@ const getJobsByAdmin = async (req, res) => {
           attributes: ["full_name"],
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
-    const formattedJobs = jobs.map(job => ({
+    const formattedJobs = jobs.map((job) => ({
       id: job.id,
       title: job.title,
       description: job.description,
@@ -331,7 +433,7 @@ const getJobDetailByAdmin = async (req, res) => {
       include: [
         {
           model: Company,
-          as: 'company',
+          as: "company",
           attributes: ["name", "logo"],
         },
         {
@@ -386,5 +488,5 @@ module.exports = {
   getAllJobsByCandidate,
   getJobDetailByCandidate,
   getJobsByAdmin,
-  getJobDetailByAdmin
+  getJobDetailByAdmin,
 };
