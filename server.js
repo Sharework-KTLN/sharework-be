@@ -24,8 +24,6 @@ const Major = require("./src/models/Major");
 const UserSkill = require("./src/models/UserSkill");
 const UserInterestedMajor = require("./src/models/UserInterestedMajor");
 
-// require("./src/models/association");
-
 // middleware
 app.use(express.json());
 app.use(corsMiddleware);
