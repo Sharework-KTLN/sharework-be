@@ -1,23 +1,30 @@
 const natural = require("natural");
+const Job  = require('../models/Job');
 const Tfidf = natural.TfIdf;
 
-// Hàm tính điểm TF-IDF
+const getJobDescriptionById = async (jobId) => {
+  const job = await Job.findByPk(jobId, {
+    attributes: ['title', 'description']
+  });
+  if (!job) return '';
+  return `${job.title} ${job.description}`;
+};
 
-const getTfidfScore = (text, jobIds) => {
+// Hàm tính điểm TF-IDF
+const getTfidfScore = async (text, jobIds) => {
   const tfidf = new Tfidf();
 
-  // Giả sử bạn có các mô tả công việc của người dùng đã lưu và ứng tuyển
-  jobIds.forEach((jobId) => {
-    const jobDescription = getJobDescriptionById(jobId); // Hàm giả định lấy mô tả công việc theo ID
+  for (const jobId of jobIds) {
+    const jobDescription = await getJobDescriptionById(jobId);
     tfidf.addDocument(jobDescription);
+  }
+
+  let score = 0;
+  tfidf.tfidfs(text, function(i, measure) {
+    if (i === 0) score = measure;
   });
 
-  // Tính điểm TF-IDF cho công việc hiện tại
-  const jobTFIDFScore = tfidf.tfidfs(text, (i, measure) => {
-    if (i === 0) return measure; // Sử dụng mức độ TF-IDF của công việc hiện tại
-  });
-
-  return jobTFIDFScore[0] || 0; // Trả về điểm TF-IDF hoặc 0 nếu không có điểm
+  return score;
 };
 
 module.exports = { getTfidfScore };
