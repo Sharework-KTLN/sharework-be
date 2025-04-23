@@ -9,7 +9,7 @@ const Major = require("../models/Major");
 const Skill = require("../models/Skill");
 const UserInterestedMajor = require("../models/UserInterestedMajor");
 const UserSkill = require("../models/UserSkill");
-const { getTfidfScore } = require("../utils/tfidf");
+const { getTfidfScoreRecruiter } = require("../utils/tfidf");
 
 // Lấy tất cả các ứng viên
 
@@ -109,7 +109,7 @@ const getAllCandidates = async (req, res) => {
 
     // Tính điểm TF-IDF cho ứng viên so với kỹ năng tổng hợp của nhà tuyển dụng
     const scores = candidateSkillTexts.map((candidateText) =>
-      getTfidfScore(jobSkillsText, [candidateText])
+      getTfidfScoreRecruiter(jobSkillsText, [candidateText])
     );
 
     // Gắn điểm vào từng ứng viên
