@@ -26,6 +26,7 @@ const UserSkill = sequelize.define(
 
 // User with User skill
 User.hasMany(UserSkill, {
+  as: "user_skills",
   foreignKey: "candidate_id",
 });
 UserSkill.belongsTo(User, {
@@ -35,6 +36,7 @@ UserSkill.belongsTo(User, {
 
 // Skill with User skill
 Skill.hasMany(UserSkill, {
+  as: "skills",
   foreignKey: "skill_id",
 });
 UserSkill.belongsTo(Skill, {
