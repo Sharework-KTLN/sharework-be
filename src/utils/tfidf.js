@@ -10,6 +10,23 @@ const getJobDescriptionById = async (jobId) => {
   return `${job.title} ${job.description}`;
 };
 
+// Hàm tính điểm TF-IDF
+const getTfidfScore = async (text, jobIds) => {
+  const tfidf = new Tfidf();
+
+  for (const jobId of jobIds) {
+    const jobDescription = await getJobDescriptionById(jobId);
+    tfidf.addDocument(jobDescription);
+  }
+
+  let score = 0;
+  tfidf.tfidfs(text, function (i, measure) {
+    if (i === 0) score = measure;
+  });
+
+  return score;
+};
+
 /**
  * @param {string} targetText - Văn bản cần tính điểm tương đồng (ví dụ: mô tả ứng viên, mô tả công việc mới)
  * @param {string[]} comparedTexts - Danh sách văn bản dùng để so sánh
@@ -32,27 +49,6 @@ const getTfidfScoreRecruiter = (targetText, comparedTexts) => {
   });
 
   return maxScore;
-};
-
-/**
- * @param {string} targetText - Văn bản cần tính điểm tương đồng (ví dụ: mô tả ứng viên, mô tả công việc mới)
- * @param {string[]} comparedTexts - Danh sách văn bản dùng để so sánh
- * @returns {number} - Điểm TF-IDF cao nhất
- */
-const getTfidfScore = async (targetText, comparedTexts) => {
-  const tfidf = new Tfidf();
-
-  for (const jobId of jobIds) {
-    const jobDescription = await getJobDescriptionById(jobId);
-    tfidf.addDocument(jobDescription);
-  }
-
-  let score = 0;
-  tfidf.tfidfs(text, function (i, measure) {
-    if (i === 0) score = measure;
-  });
-
-  return score;
 };
 
 module.exports = { getTfidfScore, getTfidfScoreRecruiter };
