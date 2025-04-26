@@ -63,20 +63,6 @@ const Job = sequelize.define(
     deadline: {
       type: DataTypes.DATE, // Hạn bài đăng
     },
-    company_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Company,
-        key: 'id',
-      },
-    },
-    recruiter_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: User,
-        key: 'id',
-      },
-    },
   },
   {
     tableName: "jobs",
@@ -86,17 +72,22 @@ const Job = sequelize.define(
 );
 
 Company.hasMany(Job, {
+  as: "jobs",
   foreignKey: "company_id",
 });
 
 Job.belongsTo(Company, {
+  as: "company",
   foreignKey: "company_id",
-  as: "company"
 });
 
 User.hasMany(Job, {
+  as: "recruiter_jobs",
   foreignKey: "recruiter_id",
 });
-Job.belongsTo(User, { as: "recruiter", foreignKey: "recruiter_id" });
+Job.belongsTo(User, {
+  as: "recruiter",
+  foreignKey: "recruiter_id",
+});
 
 module.exports = Job;

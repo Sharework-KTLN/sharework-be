@@ -13,7 +13,7 @@ const Resume = sequelize.define(
     file_url: {
       type: DataTypes.STRING,
       allowNull: false,
-    }
+    },
   },
   {
     tableName: "resumes",
@@ -23,8 +23,12 @@ const Resume = sequelize.define(
 );
 
 User.hasMany(Resume, {
+  as: "resumes",
   foreignKey: "candidate_id",
 });
-Resume.belongsTo(User, { as: "candidate", foreignKey: "candidate_id" });
+Resume.belongsTo(User, {
+  as: "candidate",
+  foreignKey: "candidate_id",
+});
 
 module.exports = Resume;
