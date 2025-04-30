@@ -92,19 +92,27 @@ const updateJob = async (req, res) => {
       salary_range,
       salary_type,
       deadline,
-      work_type,
       work_location,
       work_schedule,
+      work_type,
       description,
       vacancies,
-      recruiter_id,
-      company_id,
+      benefits,
+      candidate_required,
+      education,
+      experience_required,
+      position,
     } = req.body;
 
     // Chuyển đổi deadline sang kiểu Date (nếu có)
     const formattedDeadline = deadline
       ? dayjs(deadline, "YYYY-MM-DD").toDate()
       : undefined;
+
+    // Nếu work_type là mảng, lấy giá trị đầu tiên
+    const formattedWorkType = Array.isArray(work_type)
+      ? work_type[0]
+      : work_type;
 
     // Tạo object chứa các trường cần cập nhật
     const updatedFields = {
@@ -114,13 +122,16 @@ const updateJob = async (req, res) => {
       salary_range,
       salary_type,
       deadline: formattedDeadline,
-      work_type,
+      work_type: formattedWorkType,
       work_location,
       work_schedule,
       description,
       vacancies,
-      recruiter_id,
-      company_id,
+      benefits,
+      candidate_required,
+      educational_level: education,
+      experience_required,
+      work_level: position,
     };
 
     // Xoá các field undefined để tránh ghi đè giá trị cũ bằng undefined
@@ -135,7 +146,6 @@ const updateJob = async (req, res) => {
     }
 
     await updatedJob.update(updatedFields);
-
     res
       .status(200)
       .json({ message: "Cập nhật bài đăng thành công!", job: updatedJob });
@@ -331,7 +341,7 @@ const getAllJobsByCandidate = async (req, res) => {
     const userId = req.user?.id; // Có thể không tồn tại nếu chưa đăng nhập
     console.log("👤 Thông tin user:", req.user);
     console.log("📌 userId:", userId);
-     console.log("📌 userId:", userId);
+    console.log("📌 userId:", userId);
     // 1. Lấy tất cả công việc
     const jobs = await Job.findAll({
       include: [
@@ -362,44 +372,60 @@ const getAllJobsByCandidate = async (req, res) => {
       // });
       const savedJobs = await SaveJob.findAll({
         where: { candidate_id: userId },
-        attributes: ['job_id']
+        attributes: ["job_id"],
       });
 
       const appliedAndSavedJobIds = [
         ...new Set([
           // ...appliedJobs.map(job => job.job_id),
-          ...savedJobs.map(job => job.job_id),
-        ])
+          ...savedJobs.map((job) => job.job_id),
+        ]),
       ];
 
       // console.log("✅ Job đã ứng tuyển:", appliedJobs.map(j => j.job_id));
-      console.log("✅ Job đã lưu:", savedJobs.map(j => j.job_id));
+      console.log(
+        "✅ Job đã lưu:",
+        savedJobs.map((j) => j.job_id)
+      );
       console.log("✅ Tổng hợp jobId đã lưu/ứng tuyển:", appliedAndSavedJobIds);
 
       // 3. Tính điểm TF-IDF cho tất cả công việc
-      const jobScores = await Promise.all(jobs.map(async (job) => {
-        // const jobText = `${job.title || ''} ${job.description || ''}`;
-        const jobText = [job.title, job.description].filter(Boolean).join(" ");
-        const tfidfScore = await getTfidfScore(jobText, appliedAndSavedJobIds);
+      const jobScores = await Promise.all(
+        jobs.map(async (job) => {
+          // const jobText = `${job.title || ''} ${job.description || ''}`;
+          const jobText = [job.title, job.description]
+            .filter(Boolean)
+            .join(" ");
+          const tfidfScore = await getTfidfScore(
+            jobText,
+            appliedAndSavedJobIds
+          );
 
-        return {
-          job,
-          score: tfidfScore,
-        };
-      }));
+          return {
+            job,
+            score: tfidfScore,
+          };
+        })
+      );
 
-      console.log("✅ Điểm TF-IDF từng công việc:", jobScores.map(j => ({
-        jobId: j.job.id,
-        title: j.job.title,
-        score: j.score
-      })));
+      console.log(
+        "✅ Điểm TF-IDF từng công việc:",
+        jobScores.map((j) => ({
+          jobId: j.job.id,
+          title: j.job.title,
+          score: j.score,
+        }))
+      );
 
       // 4. Sắp xếp công việc theo điểm TF-IDF
       sortedJobs = jobScores
         .sort((a, b) => b.score - a.score)
-        .map(jobScore => jobScore.job);
+        .map((jobScore) => jobScore.job);
 
-      console.log("✅ Job có điểm TF-IDF cao nhất:", jobScores.sort((a, b) => b.score - a.score)[0]);
+      console.log(
+        "✅ Job có điểm TF-IDF cao nhất:",
+        jobScores.sort((a, b) => b.score - a.score)[0]
+      );
     }
 
     // 5. Định dạng lại dữ liệu công việc
@@ -438,7 +464,6 @@ const getAllJobsByCandidate = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 const getJobDetailByCandidate = async (req, res) => {
   try {
@@ -610,6 +635,7 @@ const getJobDetailByAdmin = async (req, res) => {
 };
 module.exports = {
   createJob,
+  updateJob,
   getAllJobsByRecruiter,
   getAllJobsByCandidate,
   getJobDetailByCandidate,

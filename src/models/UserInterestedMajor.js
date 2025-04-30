@@ -25,14 +25,23 @@ const UserInterestedMajor = sequelize.define(
 );
 
 // User with Interested Major relationship
-User.hasMany(UserInterestedMajor, { foreignKey: "candidate_id" });
+User.hasMany(UserInterestedMajor, {
+  as: "user_interested_majors",
+  foreignKey: "candidate_id",
+});
 UserInterestedMajor.belongsTo(User, {
   as: "candidate",
   foreignKey: "candidate_id",
 });
 
 // Major with Interested Major relationship
-Major.hasMany(UserInterestedMajor, { foreignKey: "major_id" });
-UserInterestedMajor.belongsTo(Major, { as: "major", foreignKey: "major_id" });
+Major.hasMany(UserInterestedMajor, {
+  as: "majors",
+  foreignKey: "major_id",
+});
+UserInterestedMajor.belongsTo(Major, {
+  as: "major",
+  foreignKey: "major_id",
+});
 
 module.exports = UserInterestedMajor;
