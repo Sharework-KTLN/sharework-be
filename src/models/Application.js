@@ -14,10 +14,22 @@ const Application = sequelize.define(
     status: {
       type: DataTypes.ENUM("pending", "reviewed", "accepted", "rejected"),
     },
+    file_name: {
+      type: DataTypes.STRING,
+    },
+    full_name: {
+      type: DataTypes.STRING,
+    },
+    phone: {
+      type: DataTypes.STRING,
+    },
+    email: {
+      type: DataTypes.STRING,
+    },
     cover_letter: {
       type: DataTypes.STRING,
     },
-    resume: {
+    cv_url: {
       type: DataTypes.STRING,
     },
   },
