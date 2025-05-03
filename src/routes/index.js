@@ -7,6 +7,7 @@ const majorRoutes = require("./majorRoutes");
 const skillRoutes = require("./skillRoutes");
 const messageRoutes = require("./messageRoutes");
 const conversationRoutes = require("./conversationRoutes");
+const applicationRoutes = require("./applicationRoutes");
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/majors", majorRoutes);
 router.use("/skills", skillRoutes);
 router.use("/messages", messageRoutes);
 router.use("/conversations", conversationRoutes);
+router.use("/applications", applicationRoutes);
 
 module.exports = router;
