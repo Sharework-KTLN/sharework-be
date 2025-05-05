@@ -1,3 +1,4 @@
+const { sequelize } = require("../configs/database");
 const Application = require("../models/Application");
 
 const uploadCV = async (req, res) => {
@@ -33,4 +34,38 @@ const uploadCV = async (req, res) => {
   }
 };
 
-module.exports = { uploadCV };
+const getApplicationOfCandidateByJobId = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+
+    const applications = await Application.findAll({
+      where: { job_id: job_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.status(200).json(applications);
+  } catch (err) {
+    console.error("Lỗi khi lấy danh sách ứng tuyển:", err);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
+const countNumberOfApplicationsByJob = async (req, res) => {
+  try {
+    const result = await sequelize.query(`
+      SELECT job_id, COUNT(*) as total
+      FROM applications
+      GROUP BY job_id
+    `);
+    res.json(result[0]);
+  } catch (err) {
+    console.error("Lỗi khi đếm số lượng ứng tuyển theo từng công việc: ", err);
+    res.status(500).json({ error: "Lỗi Server!" });
+  }
+};
+
+module.exports = {
+  uploadCV,
+  getApplicationOfCandidateByJobId,
+  countNumberOfApplicationsByJob,
+};
