@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const { connectDB, sequelize } = require("./src/configs/database");
+// 🧠 Import socket và init
+const { initSocket } = require("./src/socket");
 // import middleware
 const corsMiddleware = require("./src/middlewares/corsMiddleware");
 const sessionMiddleware = require("./src/middlewares/sessionMiddleware");
@@ -11,6 +13,12 @@ const routes = require("./src/routes");
 dotenv.config();
 const app = express();
 const PORT = 8080;
+
+// khởi tạo server HTTP
+const server = require("http").createServer(app);
+
+// Tạo kết nối socket.io và truyền server HTTP vào
+initSocket(server);
 
 const Application = require("./src/models/Application");
 const Company = require("./src/models/Company");
@@ -23,6 +31,8 @@ const Skill = require("./src/models/Skill");
 const Major = require("./src/models/Major");
 const UserSkill = require("./src/models/UserSkill");
 const UserInterestedMajor = require("./src/models/UserInterestedMajor");
+const Message = require("./src/models/Message");
+const Conversation = require("./src/models/Conversation");
 
 // middleware
 app.use(express.json());
@@ -46,7 +56,7 @@ app.get("/", (req, res) => {
   res.send("Hello World !");
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 

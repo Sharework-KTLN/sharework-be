@@ -1,7 +1,8 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../configs/database");
 const User = require("./User");
-const Company = require("./Company");
+const Job = require("./Job");
+
 
 const Application = sequelize.define(
   "Application",
@@ -12,10 +13,25 @@ const Application = sequelize.define(
       primaryKey: true,
     },
     status: {
-      type: DataTypes.ENUM("pending", "reviewed", "accepted", "rejected")
+      type: DataTypes.ENUM("pending", "reviewed", "accepted", "rejected"),
+    },
+    file_name: {
+      type: DataTypes.STRING,
+    },
+    full_name: {
+      type: DataTypes.STRING,
+    },
+    phone: {
+      type: DataTypes.STRING,
+    },
+    email: {
+      type: DataTypes.STRING,
     },
     cover_letter: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+    },
+    cv_url: {
+      type: DataTypes.STRING,
     },
   },
   {
@@ -27,9 +43,22 @@ const Application = sequelize.define(
 );
 
 User.hasMany(Application, {
+  as: "applications",
   foreignKey: "candidate_id",
 });
-Application.belongsTo(User, { as: "candidate", foreignKey: "candidate_id" });
+Application.belongsTo(User, {
+  as: "candidate",
+  foreignKey: "candidate_id",
+});
+
+Job.hasMany(Application, {
+  as: "applications",
+  foreignKey: "job_id",
+});
+Application.belongsTo(Job, {
+  as: "job",
+  foreignKey: "job_id",
+});
 
 // // Mối quan hệ giữa Application và Company
 // Application.belongsTo(Company, {

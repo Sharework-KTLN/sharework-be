@@ -13,8 +13,8 @@ const SaveJob = sequelize.define(
     },
     saved_at: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,  // Lưu thời gian hiện tại khi yêu thích công việc
-    }
+      defaultValue: DataTypes.NOW, // Lưu thời gian hiện tại khi yêu thích công việc
+    },
   },
   {
     tableName: "save_jobs",
@@ -24,16 +24,21 @@ const SaveJob = sequelize.define(
 );
 
 User.hasMany(SaveJob, {
+  as: "saved_jobs",
   foreignKey: "candidate_id",
 });
-SaveJob.belongsTo(User, { as: "candidate", foreignKey: "candidate_id" });
+SaveJob.belongsTo(User, {
+  as: "candidate",
+  foreignKey: "candidate_id",
+});
 
 Job.hasMany(SaveJob, {
+  as: "saved_jobs",
   foreignKey: "job_id",
 });
 SaveJob.belongsTo(Job, {
-  foreignKey: 'job_id',
-  as: 'job'
+  as: "job",
+  foreignKey: "job_id",
 });
 
 module.exports = SaveJob;

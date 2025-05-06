@@ -55,7 +55,7 @@ const getAllCompaniesByCandidate = async (req, res) => {
         },
         {
           model: Job,
-          as: "Jobs",
+          as: "jobs",
           attributes: ["id"], // Chỉ cần id để đếm số lượng
         },
       ],
@@ -123,7 +123,7 @@ const getCompanyDetail = async (req, res) => {
         },
         {
           model: Job,
-          as: "Jobs",
+          as: "jobs",
           attributes: [
             "id",
             "title",
