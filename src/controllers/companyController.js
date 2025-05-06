@@ -1,3 +1,4 @@
+const { sequelize } = require("../configs/database"); 
 const Company = require("../models/Company");
 const User = require("../models/User");
 const Job = require("../models/Job");
@@ -165,9 +166,44 @@ const getCompanyDetail = async (req, res) => {
   }
 };
 
+const getAllCompaniesByAdmin = async (req, res) => {
+  try {
+    const companies = await Company.findAll({
+      attributes: [
+        'id',
+        'name',
+        'location',
+        [sequelize.fn('COUNT', sequelize.col('Jobs.id')), 'total_jobs'],
+      ],
+      include: [
+        {
+          model: Job,
+          attributes: [],
+        },
+        {
+          model: User,
+          as: 'recruiter',
+          attributes: ['full_name'],
+          where: { role: 'recruiter' }, // Thêm điều kiện lọc recruiter
+          required: false, // để tránh làm mất company nếu không có recruiter hợp lệ
+        },
+      ],
+      group: ['Company.id', 'recruiter.id'],
+      order: [['name', 'ASC']],
+    });
+
+    res.status(200).json(companies);
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 module.exports = {
   getAllCompaniesByCandidate,
   getCompanyDetail,
   getCompanyById,
   getCompanyByRecruiterId,
+  getAllCompaniesByAdmin
 };

@@ -4,6 +4,7 @@ const {
   getCompanyDetail,
   getCompanyById,
   getCompanyByRecruiterId,
+  getAllCompaniesByAdmin
 } = require("../controllers/companyController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
 
@@ -14,5 +15,5 @@ router.get("/:id", getCompanyDetail);
 
 // router.get("/:id", getCompanyById);
 router.get("/recruiter/:recruiter_id", getCompanyByRecruiterId);
-
+router.get("/admin/companies", getAllCompaniesByAdmin);
 module.exports = router;
