@@ -114,7 +114,7 @@ const getCompanyDetail = async (req, res) => {
 
     // Tìm công ty theo ID và lấy danh sách công việc
     const company = await Company.findOne({
-      where: { id },
+      where: { id: id },
       include: [
         {
           model: User,
@@ -155,8 +155,8 @@ const getCompanyDetail = async (req, res) => {
       location: company.location || "",
       job_count: jobCount, // Hiển thị số lượng công việc
       description: company.description || "",
-      recruiter_name: company.recruiter?.full_name || "Không rõ",
-      jobs: company.Jobs || [],
+      recruiter_name: company.recruiter ? company.recruiter.full_name : "Không rõ",
+      jobs: company.jobs || [],
     };
 
     res.status(200).json(formattedCompany);
@@ -173,11 +173,12 @@ const getAllCompaniesByAdmin = async (req, res) => {
         'id',
         'name',
         'location',
-        [sequelize.fn('COUNT', sequelize.col('Jobs.id')), 'total_jobs'],
+        [sequelize.fn('COUNT', sequelize.col('jobs.id')), 'total_jobs'],
       ],
       include: [
         {
           model: Job,
+          as: 'jobs',
           attributes: [],
         },
         {

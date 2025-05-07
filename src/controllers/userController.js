@@ -322,89 +322,79 @@ const saveUserMajors = async (req, res) => {
 
 const getUserInterestedMajors = async (req, res) => {
   const userId = req.params.userId;
-  // Kiểm tra nếu userId không tồn tại hoặc không hợp lệ
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
 
   try {
-    // Lấy danh sách các ngành nghề mà người dùng quan tâm
     const userMajors = await UserInterestedMajor.findAll({
-      where: { user_id: userId },
+      where: { candidate_id: userId }, // Thay đổi từ user_id thành candidate_id
       include: [
         {
           model: Major,
-          attributes: ["id", "name"], // Lấy id và tên ngành
+          as: "major", 
+          attributes: ["id", "name"], 
         },
         {
           model: User,
-          attributes: ["id", "full_name"], // Lấy thông tin người dùng (nếu cần)
+          as: "candidate", 
+          attributes: ["id", "full_name"], 
         },
       ],
     });
 
-    // Kiểm tra nếu không có dữ liệu
     if (!userMajors || userMajors.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No majors found for this user." });
+      return res.status(404).json({ message: "No majors found for this user." });
     }
 
-    // Trả về danh sách majors của người dùng
-    res.json(
-      userMajors.map((item) => ({
-        majorId: item.major_id,
-        majorName: item.Major.name,
-      }))
-    );
+    res.json(userMajors.map((item) => ({
+      majorId: item.major_id,
+      majorName: item.major.name,
+    })));
   } catch (error) {
     console.error("Error fetching user majors:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+
 const getUserSkills = async (req, res) => {
   const userId = req.params.userId;
-  // Kiểm tra nếu userId không tồn tại hoặc không hợp lệ
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
 
   try {
-    // Lấy danh sách các kỹ năng
     const userSkills = await UserSkill.findAll({
-      where: { user_id: userId },
+      where: { candidate_id: userId }, // Thay đổi từ user_id thành candidate_id
       include: [
         {
           model: Skill,
-          attributes: ["id", "name"], // Lấy id và tên ngành
+          as: "skill", 
+          attributes: ["id", "name"],
         },
         {
           model: User,
-          attributes: ["id", "full_name"], // Lấy thông tin người dùng (nếu cần)
+          as: "candidate", 
+          attributes: ["id", "full_name"], 
         },
       ],
     });
 
-    // Kiểm tra nếu không có dữ liệu
     if (!userSkills || userSkills.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No skills found for this user." });
+      return res.status(404).json({ message: "No skills found for this user." });
     }
 
-    // Trả về danh sách skills của người dùng
-    res.json(
-      userSkills.map((item) => ({
-        skillId: item.Skill.id,
-        skillName: item.Skill.name,
-      }))
-    );
+    res.json(userSkills.map((item) => ({
+      skillId: item.skill_id,
+      skillName: item.skill.name,
+    })));
   } catch (error) {
-    console.error("Error fetching user skillrs:", error);
+    console.error("Error fetching user skills:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 const getAllUsers = async (req, res) => {
     try {
@@ -435,6 +425,7 @@ const getUserDetail = async (req, res) => {
             include: [
                 { 
                     model: UserSkill, 
+                    as: "user_skills",
                     include: [
                         { 
                             model: Skill, 
@@ -444,7 +435,8 @@ const getUserDetail = async (req, res) => {
                     ]
                 },
                 { 
-                    model: UserInterestedMajor, 
+                    model: UserInterestedMajor,
+                    as: "user_interested_majors", 
                     include: [
                         { 
                             model: Major, 
@@ -453,9 +445,10 @@ const getUserDetail = async (req, res) => {
                         }
                     ] 
                 },
-                { model: Resume },
+                // { model: Resume },
                 { 
                     model: SaveJob,
+                    as: "saved_jobs",
                     include: [
                         {
                             model: Job, 
@@ -482,26 +475,25 @@ const getUserDetail = async (req, res) => {
 
         // Chỉ lấy các trường thông tin cần thiết
         const userData = {
-            ...user.toJSON(),  // Convert sequelize instance to plain object
-            UserSkills: user.UserSkills ? user.UserSkills.map(userSkill => ({
-                id: userSkill.skill.id,
-                skill: userSkill.skill.name,
-                description: userSkill.skill.description
-            })) : [],  // Nếu không có UserSkills thì gán là mảng rỗng
-            UserInterestedMajors: user.UserInterestedMajors ? user.UserInterestedMajors.map(userInterestedMajor => ({
-                id: userInterestedMajor.major.id,
-                major: userInterestedMajor.major.name,
-                description: userInterestedMajor.major.description
-            })) : [],  // Nếu không có UserInterestedMajors thì gán là mảng rỗng
-            SavedJobs: user.SaveJobs ? user.SaveJobs.map(saveJob => ({
-                id: saveJob.job.id,
-                job_title: saveJob.job.title,
-                company_name: saveJob.job.company ? saveJob.job.company.name : 'Không có tên công ty',
-                job_location: saveJob.job.work_location,
-                saved_at: saveJob.saved_at,
-            })) : []  // Nếu không có SaveJobs thì gán là mảng rỗng
-        };
-
+          ...user.toJSON()
+          // UserSkills: user.user_skills ? user.user_skills.map(userSkill => ({
+          //     id: userSkill.skill.id,
+          //     skill: userSkill.skill.name,
+          //     description: userSkill.skill.description
+          // })) : [],
+          // UserInterestedMajors: user.user_interested_majors ? user.user_interested_majors.map(userInterestedMajor => ({
+          //     id: userInterestedMajor.major.id,
+          //     major: userInterestedMajor.major.name,
+          //     description: userInterestedMajor.major.description
+          // })) : [],
+          // SavedJobs: user.saved_jobs ? user.saved_jobs.map(saveJob => ({
+          //     id: saveJob.job.id,
+          //     job_title: saveJob.job.title,
+          //     company_name: saveJob.job.company ? saveJob.job.company.name : 'Không có tên công ty',
+          //     job_location: saveJob.job.work_location,
+          //     saved_at: saveJob.saved_at,
+          // })) : []
+        };     
         res.status(200).json({
             message: "Lấy thông tin người dùng thành công",
             data: userData,
