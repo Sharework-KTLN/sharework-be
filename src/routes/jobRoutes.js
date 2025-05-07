@@ -8,6 +8,8 @@ const {
   getJobDetailByCandidate,
   getJobsByAdmin,
   getJobDetailByAdmin,
+  approveJob,
+  rejectJob
 } = require("../controllers/jobController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
 const { optionalVerifyToken } = require("../middlewares/optionalMiddlewares");
@@ -22,4 +24,6 @@ router.get("/", optionalVerifyToken, getAllJobsByCandidate);
 router.get("/detail/:id", getJobDetailByCandidate);
 router.get("/admin/", getJobsByAdmin);
 router.get("/admin/:id", getJobDetailByAdmin);
+router.patch("/admin/approve/:id", approveJob);
+router.patch("/admin/reject/:id", rejectJob);
 module.exports = router;

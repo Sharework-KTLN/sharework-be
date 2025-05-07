@@ -1,7 +1,7 @@
 const dayjs = require("dayjs");
 const { Op, fn, col, literal } = require('sequelize');
 const moment = require('moment'); // nếu cần xử lý thời gian
-const { Op, Sequelize } = require("sequelize");
+const {Sequelize} = require("sequelize");
 const User = require("../models/User");
 const SaveJob = require("../models/SaveJob");
 const Job = require("../models/Job");
@@ -201,26 +201,19 @@ const saveJobByUser = async (req, res) => {
 const getJobsFavorite = async (req, res) => {
   try {
     const userId = req.user?.id;
-        if (!userId) {
-            return res.status(400).json({ message: "User not found" });
-        }
+    if (!userId) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
     const savedJobs = await SaveJob.findAll({
-      where: {
-        candidate_id: userId,
-      },
+      where: { candidate_id: userId },
       include: [
         {
           model: Job,
           as: "job",
           attributes: [
-            "id",
-            "title",
-            "salary_range",
-            "status",
-            "company_id",
-            "work_location",
-            "specialize",
-            "deadline",
+            "id", "title", "salary_range", "status",
+            "company_id", "work_location", "specialize", "deadline",
           ],
           include: [
             {
@@ -233,17 +226,11 @@ const getJobsFavorite = async (req, res) => {
       ],
     });
 
-    if (!savedJobs.length) {
-      return res
-        .status(404)
-        .json({ message: "Chưa có công việc nào được lưu" });
-    }
-
     return res.status(200).json({
       message: "Danh sách công việc đã lưu",
       savedJobs: savedJobs.map((item) => ({
-        ...item.job.toJSON(), // Chuyển đổi job thành đối tượng thông thường
-        saved_at: item.saved_at, // Thêm thời gian lưu vào kết quả
+        ...item.job.toJSON(),
+        saved_at: item.saved_at,
       })),
     });
   } catch (error) {
@@ -251,7 +238,6 @@ const getJobsFavorite = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server" });
   }
 };
-
 
 const unsaveJobByUser = async (req, res) => {
   try {
