@@ -12,6 +12,7 @@ const {
     getDashboardStats,
     getMonthlyStats,
     getAllCandidates,
+    getJobsApplied
  } = require("../controllers/userController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
 
@@ -20,6 +21,7 @@ const { verifyToken } = require("../middlewares/authMiddlewares");
 router.get("/getAllCandidates/:recruiterId", verifyToken, getAllCandidates);
 router.post("/savejob/:jobId", verifyToken, saveJobByUser);
 router.get("/favorites", verifyToken, getJobsFavorite);
+router.get("/applies", verifyToken, getJobsApplied);
 router.delete("/unsavejob/:jobId", verifyToken, unsaveJobByUser);
 router.post("/:userId/majors", verifyToken, saveUserMajors);
 router.get("/:userId/majors", verifyToken, getUserInterestedMajors);

@@ -605,6 +605,68 @@ const getMonthlyStats = async (req, res) => {
     }
 };
 
+const getJobsApplied = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const appliedJobs = await Application.findAll({
+      where: { candidate_id: userId },
+      order: [['created_at', 'DESC']],
+      attributes: [ // 👈 thêm dòng này
+        'id', 'status', 'created_at', 'cv_url', 'full_name', 'email', 'phone'
+      ],
+      include: [
+        {
+          model: Job,
+          as: 'job',
+          attributes: [
+            'id', 'title', 'salary_range', 'status',
+            'company_id', 'work_location', 'specialize', 'deadline'
+          ],
+          include: [
+            {
+              model: Company,
+              as: 'company',
+              attributes: ['id', 'name', 'logo']
+            }
+          ]
+        }
+      ]
+    });
+
+    return res.status(200).json({
+      message: 'Danh sách công việc đã ứng tuyển',
+      applications: appliedJobs.map(app => {
+        const job = app.job?.toJSON?.() || {};
+        return {
+          application_id: app.id,
+          status: app.status,
+          applied_at: app.getDataValue('created_at'), // CHẮC CHẮN lấy được
+          cv_url: app.cv_url,
+          full_name: app.full_name,
+          email: app.email,
+          phone: app.phone,
+          job_id: job.id,
+          title: job.title,
+          salary_range: job.salary_range,
+          status_job: job.status,
+          company_id: job.company_id,
+          work_location: job.work_location,
+          specialize: job.specialize,
+          deadline: job.deadline,
+          company: job.company,
+        };
+      }),      
+    });    
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách ứng tuyển:', error);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
 module.exports = {
     saveJobByUser,
     getJobsFavorite,
@@ -616,5 +678,6 @@ module.exports = {
     getUserDetail,
     getDashboardStats,
     getMonthlyStats,
-    getAllCandidates
+    getAllCandidates,
+    getJobsApplied
 };
