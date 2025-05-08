@@ -19,6 +19,14 @@ const Job = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: "open", // Trạng thái công việc (open, closed, expired, draft)
     },
+    approval_status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "Pending", // Trạng thái duyệt bài (chờ duyệt, đã duyệt)
+      validate: {
+        isIn: [["Pending", "Approved", "Rejected"]],
+      },
+    },
     experience_required: {
       type: DataTypes.STRING, // Kinh nghiệm yêu cầu (1-2 năm, không yêu cầu, v.v.)
     },
@@ -71,6 +79,7 @@ const Job = sequelize.define(
   }
 );
 
+// Quan hệ với Company
 Company.hasMany(Job, {
   as: "jobs",
   foreignKey: "company_id",
@@ -81,10 +90,12 @@ Job.belongsTo(Company, {
   foreignKey: "company_id",
 });
 
+// Quan hệ với User (recruiter)
 User.hasMany(Job, {
   as: "recruiter_jobs",
   foreignKey: "recruiter_id",
 });
+
 Job.belongsTo(User, {
   as: "recruiter",
   foreignKey: "recruiter_id",

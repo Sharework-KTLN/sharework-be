@@ -3,6 +3,7 @@ const { sequelize } = require("../configs/database");
 const User = require("./User");
 const Job = require("./Job");
 
+
 const Application = sequelize.define(
   "Application",
   {
@@ -59,4 +60,9 @@ Application.belongsTo(Job, {
   foreignKey: "job_id",
 });
 
+// // Mối quan hệ giữa Application và Company
+// Application.belongsTo(Company, {
+//   foreignKey: "company_id",
+//   as: "company",  // Alias cho mối quan hệ
+// });
 module.exports = Application;
