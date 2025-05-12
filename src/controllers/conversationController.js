@@ -1,5 +1,6 @@
 const Conversation = require("../models/Conversation");
 const User = require("../models/User");
+const Company = require("../models/Company");
 
 // Lấy danh sách hội thoại của người dùng
 const getAllConversationsByRole = async (req, res) => {
@@ -21,6 +22,13 @@ const getAllConversationsByRole = async (req, res) => {
             model: User,
             as: "recruiter",
             attributes: ["id", "full_name", "profile_image"],
+            include: [
+              {
+                model: Company,
+                as: "companies",
+                attributes: ["id", "name", "logo"],
+              },
+            ],
           },
         ],
       });
@@ -69,6 +77,13 @@ const createNewConversation = async (req, res) => {
           model: User,
           as: "recruiter",
           attributes: ["id", "full_name", "profile_image"],
+          include: [
+            {
+              model: Company,
+              as: "companies",
+              attributes: ["id", "name", "logo"],
+            },
+          ],
         },
       ],
     });

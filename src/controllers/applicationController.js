@@ -43,6 +43,8 @@ const getApplicationOfCandidateByJobId = async (req, res) => {
       order: [["createdAt", "DESC"]],
     });
 
+    console.log("applications by candidate id: ", applications);
+
     return res.status(200).json(applications);
   } catch (err) {
     console.error("Lỗi khi lấy danh sách ứng tuyển:", err);

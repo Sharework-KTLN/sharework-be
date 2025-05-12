@@ -1,7 +1,7 @@
 const dayjs = require("dayjs");
-const { Op, fn, col, literal } = require('sequelize');
-const moment = require('moment'); // nếu cần xử lý thời gian
-const {Sequelize} = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
+const moment = require("moment"); // nếu cần xử lý thời gian
+const { Sequelize } = require("sequelize");
 const User = require("../models/User");
 const SaveJob = require("../models/SaveJob");
 const Job = require("../models/Job");
@@ -11,8 +11,6 @@ const Skill = require("../models/Skill");
 const UserInterestedMajor = require("../models/UserInterestedMajor");
 const UserSkill = require("../models/UserSkill");
 const Application = require("../models/Application");
-const Resume = require("../models/Resume");
-const { use } = require("../routes/userRoutes");
 const { getTfidfScoreRecruiter } = require("../utils/tfidf");
 
 // Lấy tất cả các ứng viên
@@ -212,8 +210,14 @@ const getJobsFavorite = async (req, res) => {
           model: Job,
           as: "job",
           attributes: [
-            "id", "title", "salary_range", "status",
-            "company_id", "work_location", "specialize", "deadline",
+            "id",
+            "title",
+            "salary_range",
+            "status",
+            "company_id",
+            "work_location",
+            "specialize",
+            "deadline",
           ],
           include: [
             {
@@ -332,31 +336,34 @@ const getUserInterestedMajors = async (req, res) => {
       include: [
         {
           model: Major,
-          as: "major", 
-          attributes: ["id", "name"], 
+          as: "major",
+          attributes: ["id", "name"],
         },
         {
           model: User,
-          as: "candidate", 
-          attributes: ["id", "full_name"], 
+          as: "candidate",
+          attributes: ["id", "full_name"],
         },
       ],
     });
 
     if (!userMajors || userMajors.length === 0) {
-      return res.status(404).json({ message: "No majors found for this user." });
+      return res
+        .status(404)
+        .json({ message: "No majors found for this user." });
     }
 
-    res.json(userMajors.map((item) => ({
-      majorId: item.major_id,
-      majorName: item.major.name,
-    })));
+    res.json(
+      userMajors.map((item) => ({
+        majorId: item.major_id,
+        majorName: item.major.name,
+      }))
+    );
   } catch (error) {
     console.error("Error fetching user majors:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 const getUserSkills = async (req, res) => {
   const userId = req.params.userId;
@@ -370,239 +377,247 @@ const getUserSkills = async (req, res) => {
       include: [
         {
           model: Skill,
-          as: "skill", 
+          as: "skill",
           attributes: ["id", "name"],
         },
         {
           model: User,
-          as: "candidate", 
-          attributes: ["id", "full_name"], 
+          as: "candidate",
+          attributes: ["id", "full_name"],
         },
       ],
     });
 
     if (!userSkills || userSkills.length === 0) {
-      return res.status(404).json({ message: "No skills found for this user." });
+      return res
+        .status(404)
+        .json({ message: "No skills found for this user." });
     }
 
-    res.json(userSkills.map((item) => ({
-      skillId: item.skill_id,
-      skillName: item.skill.name,
-    })));
+    res.json(
+      userSkills.map((item) => ({
+        skillId: item.skill_id,
+        skillName: item.skill.name,
+      }))
+    );
   } catch (error) {
     console.error("Error fetching user skills:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
 const getAllUsers = async (req, res) => {
-    try {
-        const { role } = req.query;
-        const whereCondition = role ? { role } : {};  // nếu có role thì lọc, không thì lấy hết
-    
-        const users = await User.findAll({ where: whereCondition });
-    
-        res.status(200).json({
-            message: "Lấy danh sách người dùng thành công",
-            data: users,
-        });
-    } catch (error) {
-        console.error("Lỗi khi lấy người dùng:", error);
-        res.status(500).json({
-            message: "Đã xảy ra lỗi khi lấy danh sách người dùng",
-            error: error.message,
-        });
-    }
+  try {
+    const { role } = req.query;
+    const whereCondition = role ? { role } : {}; // nếu có role thì lọc, không thì lấy hết
+
+    const users = await User.findAll({ where: whereCondition });
+
+    res.status(200).json({
+      message: "Lấy danh sách người dùng thành công",
+      data: users,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy người dùng:", error);
+    res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy danh sách người dùng",
+      error: error.message,
+    });
+  }
 };
 
 const getUserDetail = async (req, res) => {
-    try {
-        const userId = req.params.id;  // Lấy ID từ URL params
+  try {
+    const userId = req.params.id; // Lấy ID từ URL params
 
-        // Lấy thông tin người dùng từ bảng User
-        const user = await User.findByPk(userId, {
-            include: [
-                { 
-                    model: UserSkill, 
-                    as: "user_skills",
-                    include: [
-                        { 
-                            model: Skill, 
-                            as: "skill", 
-                            attributes: ["id", "name", "description"]
-                        }
-                    ]
+    // Lấy thông tin người dùng từ bảng User
+    const user = await User.findByPk(userId, {
+      include: [
+        {
+          model: UserSkill,
+          as: "user_skills",
+          include: [
+            {
+              model: Skill,
+              as: "skill",
+              attributes: ["id", "name", "description"],
+            },
+          ],
+        },
+        {
+          model: UserInterestedMajor,
+          as: "user_interested_majors",
+          include: [
+            {
+              model: Major,
+              as: "major",
+              attributes: ["id", "name", "description"],
+            },
+          ],
+        },
+        // { model: Resume },
+        {
+          model: SaveJob,
+          as: "saved_jobs",
+          include: [
+            {
+              model: Job,
+              as: "job", // Dùng alias "job" cho Job
+              attributes: ["id", "title", "work_location", "company_id"], // Chỉ lấy các trường cần thiết
+              include: [
+                {
+                  model: Company, // Bao gồm mối quan hệ với Company
+                  as: "company", // Alias "company"
+                  attributes: ["name"], // Lấy tên công ty
                 },
-                { 
-                    model: UserInterestedMajor,
-                    as: "user_interested_majors", 
-                    include: [
-                        { 
-                            model: Major, 
-                            as: "major",
-                            attributes: ["id", "name", "description"]
-                        }
-                    ] 
-                },
-                // { model: Resume },
-                { 
-                    model: SaveJob,
-                    as: "saved_jobs",
-                    include: [
-                        {
-                            model: Job, 
-                            as: "job",  // Dùng alias "job" cho Job
-                            attributes: ["id", "title", "work_location", "company_id"],  // Chỉ lấy các trường cần thiết
-                            include: [
-                                {
-                                    model: Company,  // Bao gồm mối quan hệ với Company
-                                    as: "company",  // Alias "company"
-                                    attributes: ["name"]  // Lấy tên công ty
-                                }
-                            ]
-                        }
-                    ]
-                },
-            ],
-        });
+              ],
+            },
+          ],
+        },
+      ],
+    });
 
-        if (!user) {
-            return res.status(404).json({
-                message: "Người dùng không tồn tại",
-            });
-        }
-
-        // Chỉ lấy các trường thông tin cần thiết
-        const userData = {
-          ...user.toJSON()
-          // UserSkills: user.user_skills ? user.user_skills.map(userSkill => ({
-          //     id: userSkill.skill.id,
-          //     skill: userSkill.skill.name,
-          //     description: userSkill.skill.description
-          // })) : [],
-          // UserInterestedMajors: user.user_interested_majors ? user.user_interested_majors.map(userInterestedMajor => ({
-          //     id: userInterestedMajor.major.id,
-          //     major: userInterestedMajor.major.name,
-          //     description: userInterestedMajor.major.description
-          // })) : [],
-          // SavedJobs: user.saved_jobs ? user.saved_jobs.map(saveJob => ({
-          //     id: saveJob.job.id,
-          //     job_title: saveJob.job.title,
-          //     company_name: saveJob.job.company ? saveJob.job.company.name : 'Không có tên công ty',
-          //     job_location: saveJob.job.work_location,
-          //     saved_at: saveJob.saved_at,
-          // })) : []
-        };     
-        res.status(200).json({
-            message: "Lấy thông tin người dùng thành công",
-            data: userData,
-        });
-    } catch (error) {
-        console.error("Lỗi khi lấy chi tiết người dùng:", error);
-        res.status(500).json({
-            message: "Đã xảy ra lỗi khi lấy thông tin người dùng",
-            error: error.message,
-        });
+    if (!user) {
+      return res.status(404).json({
+        message: "Người dùng không tồn tại",
+      });
     }
+
+    // Chỉ lấy các trường thông tin cần thiết
+    const userData = {
+      ...user.toJSON(),
+      // UserSkills: user.user_skills ? user.user_skills.map(userSkill => ({
+      //     id: userSkill.skill.id,
+      //     skill: userSkill.skill.name,
+      //     description: userSkill.skill.description
+      // })) : [],
+      // UserInterestedMajors: user.user_interested_majors ? user.user_interested_majors.map(userInterestedMajor => ({
+      //     id: userInterestedMajor.major.id,
+      //     major: userInterestedMajor.major.name,
+      //     description: userInterestedMajor.major.description
+      // })) : [],
+      // SavedJobs: user.saved_jobs ? user.saved_jobs.map(saveJob => ({
+      //     id: saveJob.job.id,
+      //     job_title: saveJob.job.title,
+      //     company_name: saveJob.job.company ? saveJob.job.company.name : 'Không có tên công ty',
+      //     job_location: saveJob.job.work_location,
+      //     saved_at: saveJob.saved_at,
+      // })) : []
+    };
+    res.status(200).json({
+      message: "Lấy thông tin người dùng thành công",
+      data: userData,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết người dùng:", error);
+    res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy thông tin người dùng",
+      error: error.message,
+    });
+  }
 };
 
 const getDashboardStats = async (req, res) => {
-    try {
-        // Giả sử bạn có các model User, Company, Job đã được định nghĩa
-        const totalUsers = await User.count();
-        const totalCompanies = await Company.count();
-        const totalJobs = await Job.count();
+  try {
+    // Giả sử bạn có các model User, Company, Job đã được định nghĩa
+    const totalUsers = await User.count();
+    const totalCompanies = await Company.count();
+    const totalJobs = await Job.count();
 
-        res.status(200).json({
-            totalUsers,
-            totalCompanies,
-            totalJobs
-        });
-    } catch (error) {
-        console.error("Lỗi khi lấy thống kê:", error);
-        res.status(500).json({
-            message: "Đã xảy ra lỗi khi lấy thống kê",
-            error: error.message
-        });
-    }
+    res.status(200).json({
+      totalUsers,
+      totalCompanies,
+      totalJobs,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thống kê:", error);
+    res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy thống kê",
+      error: error.message,
+    });
+  }
 };
 
 const getMonthlyStats = async (req, res) => {
-    try {
-        const startOfYear = moment().startOf('year').toDate();
-        const endOfYear = moment().endOf('year').toDate();
+  try {
+    const startOfYear = moment().startOf("year").toDate();
+    const endOfYear = moment().endOf("year").toDate();
 
-        // Group theo tháng
-        const userStats = await User.findAll({
-            attributes: [
-                [fn('to_char', col('created_at'), 'MM/YYYY'), 'month'], // Đổi sang định dạng MM/YYYY
-                [fn('COUNT', col('*')), 'total']
-            ],
-            where: {
-                created_at: {
-                    [Op.between]: [startOfYear, endOfYear]
-                }
-            },
-            group: [literal("month")],
-            order: [literal("month ASC")]
-        });
+    // Group theo tháng
+    const userStats = await User.findAll({
+      attributes: [
+        [fn("to_char", col("created_at"), "MM/YYYY"), "month"], // Đổi sang định dạng MM/YYYY
+        [fn("COUNT", col("*")), "total"],
+      ],
+      where: {
+        created_at: {
+          [Op.between]: [startOfYear, endOfYear],
+        },
+      },
+      group: [literal("month")],
+      order: [literal("month ASC")],
+    });
 
-        const companyStats = await Company.findAll({
-            attributes: [
-                [fn('to_char', col('created_at'), 'MM/YYYY'), 'month'], // Đổi sang định dạng MM/YYYY
-                [fn('COUNT', col('*')), 'total']
-            ],
-            where: {
-                created_at: {
-                    [Op.between]: [startOfYear, endOfYear]
-                }
-            },
-            group: [literal("month")],
-            order: [literal("month ASC")]
-        });
+    const companyStats = await Company.findAll({
+      attributes: [
+        [fn("to_char", col("created_at"), "MM/YYYY"), "month"], // Đổi sang định dạng MM/YYYY
+        [fn("COUNT", col("*")), "total"],
+      ],
+      where: {
+        created_at: {
+          [Op.between]: [startOfYear, endOfYear],
+        },
+      },
+      group: [literal("month")],
+      order: [literal("month ASC")],
+    });
 
-        const jobStats = await Job.findAll({
-            attributes: [
-                [fn('to_char', col('created_at'), 'MM/YYYY'), 'month'], // Đổi sang định dạng MM/YYYY
-                [fn('COUNT', col('*')), 'total']
-            ],
-            where: {
-                created_at: {
-                    [Op.between]: [startOfYear, endOfYear]
-                }
-            },
-            group: [literal("month")],
-            order: [literal("month ASC")]
-        });
+    const jobStats = await Job.findAll({
+      attributes: [
+        [fn("to_char", col("created_at"), "MM/YYYY"), "month"], // Đổi sang định dạng MM/YYYY
+        [fn("COUNT", col("*")), "total"],
+      ],
+      where: {
+        created_at: {
+          [Op.between]: [startOfYear, endOfYear],
+        },
+      },
+      group: [literal("month")],
+      order: [literal("month ASC")],
+    });
 
-        // Tập hợp tháng và chuẩn hóa kết quả (ghép lại theo từng tháng)
-        const allMonths = new Set();
-        userStats.forEach(u => allMonths.add(u.get('month')));
-        companyStats.forEach(c => allMonths.add(c.get('month')));
-        jobStats.forEach(j => allMonths.add(j.get('month')));
+    // Tập hợp tháng và chuẩn hóa kết quả (ghép lại theo từng tháng)
+    const allMonths = new Set();
+    userStats.forEach((u) => allMonths.add(u.get("month")));
+    companyStats.forEach((c) => allMonths.add(c.get("month")));
+    jobStats.forEach((j) => allMonths.add(j.get("month")));
 
-        const result = Array.from(allMonths).sort().map(month => {
-            const users = userStats.find(u => u.get('month') === month)?.get('total') || 0;
-            const companies = companyStats.find(c => c.get('month') === month)?.get('total') || 0;
-            const jobs = jobStats.find(j => j.get('month') === month)?.get('total') || 0;
+    const result = Array.from(allMonths)
+      .sort()
+      .map((month) => {
+        const users =
+          userStats.find((u) => u.get("month") === month)?.get("total") || 0;
+        const companies =
+          companyStats.find((c) => c.get("month") === month)?.get("total") || 0;
+        const jobs =
+          jobStats.find((j) => j.get("month") === month)?.get("total") || 0;
 
-            return {
-                month,
-                totalUsers: parseInt(users),
-                totalCompanies: parseInt(companies),
-                totalJobs: parseInt(jobs)
-            };
-        });
+        return {
+          month,
+          totalUsers: parseInt(users),
+          totalCompanies: parseInt(companies),
+          totalJobs: parseInt(jobs),
+        };
+      });
 
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Lỗi khi lấy thống kê theo tháng:", error);
-        res.status(500).json({
-            message: "Đã xảy ra lỗi khi lấy thống kê theo tháng",
-            error: error.message
-        });
-    }
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy thống kê theo tháng:", error);
+    res.status(500).json({
+      message: "Đã xảy ra lỗi khi lấy thống kê theo tháng",
+      error: error.message,
+    });
+  }
 };
 
 const getJobsApplied = async (req, res) => {
@@ -614,37 +629,50 @@ const getJobsApplied = async (req, res) => {
 
     const appliedJobs = await Application.findAll({
       where: { candidate_id: userId },
-      order: [['created_at', 'DESC']],
-      attributes: [ // 👈 thêm dòng này
-        'id', 'status', 'created_at', 'cv_url', 'full_name', 'email', 'phone'
+      order: [["created_at", "DESC"]],
+      attributes: [
+        // 👈 thêm dòng này
+        "id",
+        "status",
+        "created_at",
+        "cv_url",
+        "full_name",
+        "email",
+        "phone",
       ],
       include: [
         {
           model: Job,
-          as: 'job',
+          as: "job",
           attributes: [
-            'id', 'title', 'salary_range', 'status',
-            'company_id', 'work_location', 'specialize', 'deadline'
+            "id",
+            "title",
+            "salary_range",
+            "status",
+            "company_id",
+            "work_location",
+            "specialize",
+            "deadline",
           ],
           include: [
             {
               model: Company,
-              as: 'company',
-              attributes: ['id', 'name', 'logo']
-            }
-          ]
-        }
-      ]
+              as: "company",
+              attributes: ["id", "name", "logo"],
+            },
+          ],
+        },
+      ],
     });
 
     return res.status(200).json({
-      message: 'Danh sách công việc đã ứng tuyển',
-      applications: appliedJobs.map(app => {
+      message: "Danh sách công việc đã ứng tuyển",
+      applications: appliedJobs.map((app) => {
         const job = app.job?.toJSON?.() || {};
         return {
           application_id: app.id,
           status: app.status,
-          applied_at: app.getDataValue('created_at'), // CHẮC CHẮN lấy được
+          applied_at: app.getDataValue("created_at"), // CHẮC CHẮN lấy được
           cv_url: app.cv_url,
           full_name: app.full_name,
           email: app.email,
@@ -659,25 +687,25 @@ const getJobsApplied = async (req, res) => {
           deadline: job.deadline,
           company: job.company,
         };
-      }),      
-    });    
+      }),
+    });
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách ứng tuyển:', error);
-    return res.status(500).json({ message: 'Lỗi server' });
+    console.error("Lỗi khi lấy danh sách ứng tuyển:", error);
+    return res.status(500).json({ message: "Lỗi server" });
   }
 };
 
 module.exports = {
-    saveJobByUser,
-    getJobsFavorite,
-    unsaveJobByUser,
-    saveUserMajors,
-    getUserInterestedMajors,
-    getUserSkills,
-    getAllUsers,
-    getUserDetail,
-    getDashboardStats,
-    getMonthlyStats,
-    getAllCandidates,
-    getJobsApplied
+  saveJobByUser,
+  getJobsFavorite,
+  unsaveJobByUser,
+  saveUserMajors,
+  getUserInterestedMajors,
+  getUserSkills,
+  getAllUsers,
+  getUserDetail,
+  getDashboardStats,
+  getMonthlyStats,
+  getAllCandidates,
+  getJobsApplied,
 };

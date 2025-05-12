@@ -61,6 +61,7 @@ const createJob = async (req, res) => {
           EDUCATION_MAP[educational_level] || educational_level,
         work_level: WORK_LEVEL_MAP[work_level] || work_level,
         benefits,
+        approval_status: "Pending", // Trạng thái phê duyệt mặc định là "pending"
         recruiter_id,
         company_id,
       });
@@ -210,9 +211,7 @@ const getAllJobsByCandidate = async (req, res) => {
       });
 
       const appliedAndSavedJobIds = [
-        ...new Set([
-          ...savedJobs.map((job) => job.job_id),
-        ]),
+        ...new Set([...savedJobs.map((job) => job.job_id)]),
       ];
 
       console.log(
@@ -362,12 +361,12 @@ const getJobsByAdmin = async (req, res) => {
 
     // Nếu có approval_status trong query, thêm vào whereClause
     if (approval_status) {
-      whereClause.approval_status = approval_status;  // Lọc theo approval_status
+      whereClause.approval_status = approval_status; // Lọc theo approval_status
     }
 
     // 1. Lấy công việc dựa trên approval_status
     const jobs = await Job.findAll({
-      where: whereClause,  // Lọc theo approval_status nếu có
+      where: whereClause, // Lọc theo approval_status nếu có
       include: [
         {
           model: Company,
@@ -388,8 +387,8 @@ const getJobsByAdmin = async (req, res) => {
       id: job.id,
       title: job.title,
       description: job.description,
-      approval_status: job.approval_status,  // Lấy trạng thái phê duyệt
-      status: job.status,  // Lấy trạng thái công việc
+      approval_status: job.approval_status, // Lấy trạng thái phê duyệt
+      status: job.status, // Lấy trạng thái công việc
       experience_required: job.experience_required || "",
       salary_range: job.salary_range,
       work_location: job.work_location,
@@ -420,8 +419,6 @@ const getJobsByAdmin = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
 
 const getJobDetailByAdmin = async (req, res) => {
   try {
@@ -490,17 +487,17 @@ const approveJob = async (req, res) => {
     // Tìm công việc theo ID
     const job = await Job.findByPk(jobId);
     if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
+      return res.status(404).json({ message: "Job not found" });
     }
 
     // Cập nhật trạng thái approval_status từ Pending sang Approved
-    job.approval_status = 'Approved'; 
+    job.approval_status = "Approved";
     await job.save(); // Lưu thay đổi vào cơ sở dữ liệu
 
-    res.status(200).json({ message: 'Job approved successfully', job });
+    res.status(200).json({ message: "Job approved successfully", job });
   } catch (error) {
-    console.error('Error approving job:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error approving job:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -532,5 +529,5 @@ module.exports = {
   getJobsByAdmin,
   getJobDetailByAdmin,
   approveJob,
-  rejectJob
+  rejectJob,
 };
