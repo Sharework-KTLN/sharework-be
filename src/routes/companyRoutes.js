@@ -4,11 +4,23 @@ const {
   getCompanyDetail,
   getCompanyById,
   getCompanyByRecruiterId,
-  getAllCompaniesByAdmin
+  getAllCompaniesByAdmin,
+  updateCompanyProfile,
 } = require("../controllers/companyController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
+const uploadImage = require("../middlewares/uploadImageMiddleware");
 
 const router = express.Router();
+
+// Cập nhật thông tin công ty
+router.put(
+  "/:companyId",
+  uploadImage.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "image_company", maxCount: 1 },
+  ]),
+  updateCompanyProfile
+);
 router.get("/", getAllCompaniesByCandidate);
 // Route để lấy chi tiết công ty theo ID
 router.get("/:id", getCompanyDetail);

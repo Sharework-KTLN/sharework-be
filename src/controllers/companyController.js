@@ -1,4 +1,4 @@
-const { sequelize } = require("../configs/database"); 
+const { sequelize } = require("../configs/database");
 const Company = require("../models/Company");
 const User = require("../models/User");
 const Job = require("../models/Job");
@@ -155,7 +155,9 @@ const getCompanyDetail = async (req, res) => {
       location: company.location || "",
       job_count: jobCount, // Hiển thị số lượng công việc
       description: company.description || "",
-      recruiter_name: company.recruiter ? company.recruiter.full_name : "Không rõ",
+      recruiter_name: company.recruiter
+        ? company.recruiter.full_name
+        : "Không rõ",
       jobs: company.jobs || [],
     };
 
@@ -170,41 +172,94 @@ const getAllCompaniesByAdmin = async (req, res) => {
   try {
     const companies = await Company.findAll({
       attributes: [
-        'id',
-        'name',
-        'location',
-        [sequelize.fn('COUNT', sequelize.col('jobs.id')), 'total_jobs'],
+        "id",
+        "name",
+        "location",
+        [sequelize.fn("COUNT", sequelize.col("jobs.id")), "total_jobs"],
       ],
       include: [
         {
           model: Job,
-          as: 'jobs',
+          as: "jobs",
           attributes: [],
         },
         {
           model: User,
-          as: 'recruiter',
-          attributes: ['full_name'],
-          where: { role: 'recruiter' }, // Thêm điều kiện lọc recruiter
+          as: "recruiter",
+          attributes: ["full_name"],
+          where: { role: "recruiter" }, // Thêm điều kiện lọc recruiter
           required: false, // để tránh làm mất company nếu không có recruiter hợp lệ
         },
       ],
-      group: ['Company.id', 'recruiter.id'],
-      order: [['name', 'ASC']],
+      group: ["Company.id", "recruiter.id"],
+      order: [["name", "ASC"]],
     });
 
     res.status(200).json(companies);
   } catch (error) {
-    console.error('Error fetching companies:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching companies:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
+const updateCompanyProfile = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { name, address, phone, email, description, specialize, location } =
+      req.body;
+
+    // Lấy đường dẫn ảnh từ Cloudinary sau khi multer xử lý xong
+    const logoFile = req.files?.logo?.[0];
+    const imageCompanyFile = req.files?.image_company?.[0];
+
+    const logoUrl = logoFile ? logoFile.path : undefined;
+    const imageCompanyUrl = imageCompanyFile
+      ? imageCompanyFile.path
+      : undefined;
+
+    console.log("logoUrl: ", logoUrl);
+    console.log("imageCompanyUrl: ", imageCompanyUrl);
+    // Tạo đối tượng cập nhật
+    const updateData = {
+      name,
+      address,
+      phone,
+      email,
+      description,
+      specialize,
+      location,
+    };
+
+    // Nếu có ảnh mới thì thêm vào updateData
+    if (logoUrl) updateData.logo = logoUrl;
+    if (imageCompanyUrl) updateData.image_company = imageCompanyUrl;
+
+    console.log("updateData: ", updateData);
+    // Cập nhật thông tin công ty
+    const [updatedRows] = await Company.update(updateData, {
+      where: { id: companyId }, // Điều kiện tìm kiếm dựa trên companyId
+    });
+
+    if (updatedRows === 0) {
+      return res
+        .status(404)
+        .json({ error: "Không tìm thấy công ty để cập nhật" });
+    }
+
+    return res.status(200).json({
+      message: "Cập nhật thông tin công ty thành công!",
+    });
+  } catch (err) {
+    console.error("Lỗi cập nhật thông tin công ty:", err);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
 
 module.exports = {
   getAllCompaniesByCandidate,
   getCompanyDetail,
   getCompanyById,
   getCompanyByRecruiterId,
-  getAllCompaniesByAdmin
+  getAllCompaniesByAdmin,
+  updateCompanyProfile,
 };
