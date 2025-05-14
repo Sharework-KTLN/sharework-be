@@ -7,6 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// upload file pdf
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
@@ -21,4 +22,20 @@ const storage = new CloudinaryStorage({
   },
 });
 
-module.exports = { cloudinary, storage };
+// upload image
+const storageImage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const originalName = file.originalname.replace(/\.[^/.]+$/, "");
+    const timestamp = Date.now();
+
+    return {
+      folder: "jobportal/company",
+      resource_type: "image", // hoặc bỏ cũng được, mặc định là image
+      allowed_formats: ["jpg", "jpeg", "png"],
+      public_id: `${originalName}_${timestamp}`,
+    };
+  },
+});
+
+module.exports = { cloudinary, storage, storageImage };

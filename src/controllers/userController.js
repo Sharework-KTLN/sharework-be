@@ -133,6 +133,90 @@ const getAllCandidates = async (req, res) => {
   }
 };
 
+const getAllCandidatesMatchWithJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    // 1. Lấy bài đăng
+    const job = await Job.findByPk(jobId);
+    if (!job)
+      return res.status(404).json({ message: "Bài đăng không tồn tại" });
+
+    // 2. Lấy danh sách ứng viên và kỹ năng họ có
+    const candidates = await User.findAll({
+      where: { role: "candidate" },
+      include: [
+        {
+          model: UserSkill,
+          as: "user_skills",
+          include: [
+            {
+              model: Skill,
+              as: "skill",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+      ],
+    });
+
+    // 3. Chuyển kỹ năng ứng viên thành chuỗi
+    const candidateSkillTexts = candidates.map((candidate) => {
+      const skillNames = candidate.user_skills
+        .map((us) => us.skill?.name)
+        .filter(Boolean)
+        .map((name) => name.toLowerCase()); // 👈 chuyển từng kỹ năng thành lowercase
+
+      return skillNames.length > 0 ? skillNames.join(" ") : "no_skills";
+    });
+
+    // 4. Chuẩn hóa kỹ năng yêu cầu từ job (lowercase để thống nhất)
+    const requiredSkillsText = job.required_skills.toLowerCase();
+
+    // 5. Tách kỹ năng yêu cầu thành mảng các từ (để so sánh chính xác)
+    const requiredSkillsArray = requiredSkillsText
+      .split(",")
+      .map((skill) => skill.trim());
+
+    // 6. Tính điểm TF-IDF giữa kỹ năng bài đăng và từng ứng viên
+    const tfidfScores = candidateSkillTexts.map((text, index) => {
+      const score = getTfidfScoreRecruiter(requiredSkillsArray.join(" "), [
+        text,
+      ]);
+      return {
+        user: candidates[index],
+        score,
+      };
+    });
+
+    // 7. Sắp xếp theo độ phù hợp giảm dần
+    tfidfScores.sort((a, b) => b.score - a.score);
+
+    // 8. Trả về kết quả
+    return res.status(200).json({
+      message: "Gợi ý ứng viên phù hợp",
+      candidates: tfidfScores.map(({ user, score }) => ({
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        profile_image: user.profile_image,
+        gender: user.gender,
+        date_of_birth: user.date_of_birth,
+        school: user.school,
+        course: user.course,
+        specialize: user.specialize,
+        introduce_yourself: user.introduce_yourself,
+        address: user.address,
+        skills: user.user_skills.map((us) => us.skill?.name).filter(Boolean),
+        tfidf_score: score.toFixed(4), // làm tròn 4 chữ số nếu muốn
+      })),
+    });
+  } catch (error) {
+    console.error("Lỗi gợi ý ứng viên:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 const saveJobByUser = async (req, res) => {
   try {
     console.log(req.user);
@@ -708,4 +792,5 @@ module.exports = {
   getMonthlyStats,
   getAllCandidates,
   getJobsApplied,
+  getAllCandidatesMatchWithJob,
 };
