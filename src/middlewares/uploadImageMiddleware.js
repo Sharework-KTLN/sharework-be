@@ -1,6 +1,7 @@
 const multer = require("multer");
-const { storageImage } = require("../services/cloudinary");
+const { storageImage, storageImageCandidate } = require("../services/cloudinary");
 
 const uploadImage = multer({ storage: storageImage });
+const uploadImageCandidate = multer({ storage: storageImageCandidate });
 
-module.exports = uploadImage;
+module.exports = { uploadImage, uploadImageCandidate};

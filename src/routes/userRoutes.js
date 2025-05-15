@@ -17,9 +17,9 @@ const {
   updateProfile
 } = require("../controllers/userController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
+const {uploadImageCandidate} = require("../middlewares/uploadImageMiddleware");
 
 // Lấy tất cả ứng viên
-
 router.get("/getAllCandidates/:recruiterId", verifyToken, getAllCandidates);
 router.get(
   "/getAllCandidatesMatchWithJob/:jobId",
@@ -34,7 +34,7 @@ router.delete("/unsavejob/:jobId", verifyToken, unsaveJobByUser);
 router.put("/:userId/majors", verifyToken, saveUserMajors);
 router.get("/:userId/majors", verifyToken, getUserInterestedMajors);
 router.get("/:userId/skills", verifyToken, getUserSkills);
-router.put("/profile", verifyToken, updateProfile);
+router.put("/profile", verifyToken,  uploadImageCandidate.single("profile_image"),updateProfile);
 //admin
 router.get("/alluser", getAllUsers);
 router.get("/detail/:id", getUserDetail);

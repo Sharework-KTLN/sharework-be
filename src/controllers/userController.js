@@ -791,74 +791,66 @@ const updateProfile = async (req, res) => {
       date_of_birth,
       gender,
       phone,
-      profile_image,
       address,
       school,
       course,
       specialize,
       introduce_yourself,
-      interested_majors,  // <-- mảng các major_id user quan tâm
+      interested_majors,
       skills
     } = req.body;
 
-    // Cập nhật thông tin user
-    const [updatedRows] = await User.update(
-      {
-        full_name,
-        date_of_birth,
-        gender,
-        phone,
-        profile_image,
-        address,
-        school,
-        course,
-        specialize,
-        introduce_yourself,
-      },
-      {
-        where: { id: userId },
-      }
-    );
+    // Chuẩn bị data để cập nhật
+    const updateData = {
+      full_name,
+      date_of_birth,
+      gender,
+      phone,
+      address,
+      school,
+      course,
+      specialize,
+      introduce_yourself,
+    };
+
+    // Nếu có file ảnh mới, thêm đường dẫn ảnh vào updateData
+    if (req.file && req.file.path) {
+      updateData.profile_image = req.file.path;
+    }
+
+    const [updatedRows] = await User.update(updateData, {
+      where: { id: userId },
+    });
 
     if (updatedRows === 0) {
       return res.status(404).json({ message: "User not found or no changes made" });
     }
 
-    // Cập nhật ngành nghề quan tâm nếu có
+    // Cập nhật ngành nghề quan tâm
     if (Array.isArray(interested_majors)) {
-      // Xóa hết các ngành cũ
-      await UserInterestedMajor.destroy({
-        where: { candidate_id: userId },
-      });
-
-      // Thêm mới các ngành
+      await UserInterestedMajor.destroy({ where: { candidate_id: userId } });
       const newMajors = interested_majors.map((major_id) => ({
         candidate_id: userId,
         major_id,
       }));
-
       if (newMajors.length > 0) {
         await UserInterestedMajor.bulkCreate(newMajors);
       }
     }
 
-    // Cập nhật ký năng nếu có
+    // Cập nhật kỹ năng
     if (Array.isArray(skills)) {
-      await UserSkill.destroy({
-        where: { candidate_id: userId },
-      });
-
+      await UserSkill.destroy({ where: { candidate_id: userId } });
       const newSkills = skills.map((skill_id) => ({
         candidate_id: userId,
         skill_id,
       }));
-
       if (newSkills.length > 0) {
         await UserSkill.bulkCreate(newSkills);
       }
     }
 
-    // Lấy lại user sau cập nhật (không trả về password)
+    // Lấy lại user mới sau cập nhật
     const updatedUser = await User.findByPk(userId, {
       attributes: { exclude: ["password"] },
       include: [
@@ -876,7 +868,7 @@ const updateProfile = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "Profile and interested majors updated successfully",
+      message: "Profile updated successfully",
       user: updatedUser,
     });
   } catch (error) {
@@ -884,6 +876,7 @@ const updateProfile = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 module.exports = {
   saveJobByUser,
