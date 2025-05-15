@@ -38,4 +38,20 @@ const storageImage = new CloudinaryStorage({
   },
 });
 
-module.exports = { cloudinary, storage, storageImage };
+// upload image
+const storageImageCandidate = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const originalName = file.originalname.replace(/\.[^/.]+$/, "");
+    const timestamp = Date.now();
+
+    return {
+      folder: "jobportal/candidate",
+      resource_type: "image", // hoặc bỏ cũng được, mặc định là image
+      allowed_formats: ["jpg", "jpeg", "png"],
+      public_id: `${originalName}_${timestamp}`,
+    };
+  },
+});
+
+module.exports = { cloudinary, storage, storageImage, storageImageCandidate };

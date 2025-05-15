@@ -79,7 +79,7 @@ const getAllCompaniesByCandidate = async (req, res) => {
       image_company: company.image_company || "",
       link: company.link || "",
       location: company.location || "",
-      job_count: company.Jobs?.length || 0, // Số lượng công việc đăng tuyển
+      job_count: company.jobs?.length || 0, // Số lượng công việc đăng tuyển
       description: company.description || "",
       recruiter_name: company.recruiter?.full_name || "Không rõ", // Lấy tên người tuyển dụng nếu có
     }));

@@ -8,7 +8,7 @@ const {
   updateCompanyProfile,
 } = require("../controllers/companyController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
-const uploadImage = require("../middlewares/uploadImageMiddleware");
+const {uploadImage} = require("../middlewares/uploadImageMiddleware");
 
 const router = express.Router();
 
