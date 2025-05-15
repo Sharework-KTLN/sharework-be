@@ -14,6 +14,7 @@ const {
   getAllCandidates,
   getJobsApplied,
   getAllCandidatesMatchWithJob,
+  updateProfile
 } = require("../controllers/userController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
 
@@ -25,13 +26,16 @@ router.get(
   verifyToken,
   getAllCandidatesMatchWithJob
 );
+//candidate
 router.post("/savejob/:jobId", verifyToken, saveJobByUser);
 router.get("/favorites", verifyToken, getJobsFavorite);
 router.get("/applies", verifyToken, getJobsApplied);
 router.delete("/unsavejob/:jobId", verifyToken, unsaveJobByUser);
-router.post("/:userId/majors", verifyToken, saveUserMajors);
+router.put("/:userId/majors", verifyToken, saveUserMajors);
 router.get("/:userId/majors", verifyToken, getUserInterestedMajors);
 router.get("/:userId/skills", verifyToken, getUserSkills);
+router.put("/profile", verifyToken, updateProfile);
+//admin
 router.get("/alluser", getAllUsers);
 router.get("/detail/:id", getUserDetail);
 router.get("/admin/dashboard", getDashboardStats);

@@ -779,6 +779,112 @@ const getJobsApplied = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const {
+      full_name,
+      date_of_birth,
+      gender,
+      phone,
+      profile_image,
+      address,
+      school,
+      course,
+      specialize,
+      introduce_yourself,
+      interested_majors,  // <-- mảng các major_id user quan tâm
+      skills
+    } = req.body;
+
+    // Cập nhật thông tin user
+    const [updatedRows] = await User.update(
+      {
+        full_name,
+        date_of_birth,
+        gender,
+        phone,
+        profile_image,
+        address,
+        school,
+        course,
+        specialize,
+        introduce_yourself,
+      },
+      {
+        where: { id: userId },
+      }
+    );
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ message: "User not found or no changes made" });
+    }
+
+    // Cập nhật ngành nghề quan tâm nếu có
+    if (Array.isArray(interested_majors)) {
+      // Xóa hết các ngành cũ
+      await UserInterestedMajor.destroy({
+        where: { candidate_id: userId },
+      });
+
+      // Thêm mới các ngành
+      const newMajors = interested_majors.map((major_id) => ({
+        candidate_id: userId,
+        major_id,
+      }));
+
+      if (newMajors.length > 0) {
+        await UserInterestedMajor.bulkCreate(newMajors);
+      }
+    }
+
+    // Cập nhật ký năng nếu có
+    if (Array.isArray(skills)) {
+      await UserSkill.destroy({
+        where: { candidate_id: userId },
+      });
+
+      const newSkills = skills.map((skill_id) => ({
+        candidate_id: userId,
+        skill_id,
+      }));
+
+      if (newSkills.length > 0) {
+        await UserSkill.bulkCreate(newSkills);
+      }
+    }
+
+    // Lấy lại user sau cập nhật (không trả về password)
+    const updatedUser = await User.findByPk(userId, {
+      attributes: { exclude: ["password"] },
+      include: [
+        {
+          model: UserInterestedMajor,
+          as: "user_interested_majors",
+          include: [{ model: Major, as: "major" }],
+        },
+        {
+          model: UserSkill,
+          as: "user_skills",
+          include: [{ model: Skill, as: "skill" }],
+        },
+      ],
+    });
+
+    return res.status(200).json({
+      message: "Profile and interested majors updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("❌ Error updating profile:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   saveJobByUser,
   getJobsFavorite,
@@ -793,4 +899,5 @@ module.exports = {
   getAllCandidates,
   getJobsApplied,
   getAllCandidatesMatchWithJob,
+  updateProfile
 };
