@@ -9,6 +9,12 @@ const sequelize = new Sequelize(
     host: process.env.DATABASE_HOST,
     dialect: process.env.DATABASE_DIALECT, // Loại cơ sở dữ liệu
     logging: false, // Tắt log của sequelize
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // Chấp nhận chứng chỉ không hợp lệ
+      },
+    },
   }
 );
 
