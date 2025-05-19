@@ -2,7 +2,7 @@ const dayjs = require("dayjs");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const User = require("../models/User");
-const { getTfidfScore } = require("../utils/tfidf");
+const { getTfidfScore, getJobDescriptionById, getTfidfScoreRecruiter, extractMainJobTitle, preprocess } = require("../utils/tfidf");
 const Application = require("../models/Application");
 const SaveJob = require("../models/SaveJob");
 
@@ -520,6 +520,183 @@ const rejectJob = async (req, res) => {
   }
 };
 
+const getRecommendedJobsByCandidate = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    // Lấy tất cả công việc đã được duyệt
+    const jobs = await Job.findAll({
+      where: { approval_status: "Approved" },
+      include: [
+        { model: Company, as: "company", attributes: ["name", "logo"] },
+        { model: User, as: "recruiter", attributes: ["full_name"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Lấy danh sách công việc đã lưu của ứng viên
+    const savedJobs = await SaveJob.findAll({
+      where: { candidate_id: userId },
+      attributes: ["job_id"],
+    });
+    const savedJobIds = savedJobs.map((j) => j.job_id);
+
+    // Nếu chưa lưu công việc nào thì không thể gợi ý
+    if (savedJobIds.length === 0) return res.status(200).json([]);
+
+    // Lọc ra các công việc chưa lưu
+    const unsavedJobs = jobs.filter((job) => !savedJobIds.includes(job.id));
+
+    // Chuẩn bị mô tả các công việc đã lưu để làm "tập so sánh"
+    const savedJobTexts = await Promise.all(
+      savedJobIds.map(async (jobId) => {
+        const job = jobs.find((j) => j.id === jobId);
+        if (!job) return "";
+        return [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      })
+    );
+
+    // Lọc trùng mô tả công việc chưa lưu
+    const textMap = new Map();
+    const filteredJobs = [];
+    for (const job of unsavedJobs) {
+      const jobText = [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      if (!textMap.has(jobText)) {
+        textMap.set(jobText, true);
+        filteredJobs.push({ job, jobText });
+      }
+    }
+
+    // Tính điểm TF-IDF giữa từng công việc chưa lưu với các công việc đã lưu
+    const jobScores = await Promise.all(
+      filteredJobs.map(async ({ job, jobText }) => {
+        const tfidfScore = getTfidfScoreRecruiter(jobText, savedJobTexts);
+        return { job, score: tfidfScore };
+      })
+    );
+
+    // Lọc trùng theo ID đề phòng trùng job (có thể không cần nhưng an toàn)
+    const uniqueJobScores = [...new Map(
+      jobScores.filter(Boolean).map(item => [item.job.id, item])
+    ).values()];
+
+    // Debug log điểm TF-IDF
+    uniqueJobScores.forEach(item => {
+      if (item) console.log(`✅ ${item.job.title} - TFIDF Score: ${item.score}`);
+    });
+
+    // Lọc ra các công việc có điểm cao, sắp xếp theo điểm giảm dần và lấy tối đa 10 kết quả
+    const recommendedJobs = uniqueJobScores
+      .filter((item) => item.score >= 2.4)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map((item) => item.job);
+
+    // Định dạng dữ liệu trả về
+    const formattedJobs = recommendedJobs.map((job) => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      salary_range: job.salary_range,
+      work_location: job.work_location,
+      deadline: job.deadline,
+      company: job.company,
+      recruiter: job.recruiter,
+    }));
+
+    return res.status(200).json(formattedJobs);
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy recommended jobs:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getRecommendedJobsByAppliedJobs = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Lấy danh sách các công việc đã ứng tuyển
+    const appliedJobs = await Application.findAll({
+      where: { candidate_id: userId },
+      attributes: ["job_id"],
+    });
+
+    const appliedJobIds = [...new Set(appliedJobs.map((a) => a.job_id))];
+
+    if (appliedJobIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Lấy mô tả các công việc đã ứng tuyển (dùng để tính TF-IDF)
+    const appliedJobDescriptions = await Promise.all(
+      appliedJobIds.map(async (id) => {
+        const job = await Job.findByPk(id);
+        if (!job) return "";
+        return [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      })
+    );
+
+    // Lấy tất cả job đã duyệt
+    const allJobs = await Job.findAll({
+      where: { approval_status: "Approved" },
+      include: [
+        { model: Company, as: "company", attributes: ["name", "logo"] },
+        { model: User, as: "recruiter", attributes: ["full_name"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Lọc ra các job chưa ứng tuyển
+    const unsavedJobs = allJobs.filter(job => !appliedJobIds.includes(job.id));
+
+    // Loại bỏ trùng lặp mô tả
+    const textMap = new Map();
+    const filteredJobs = [];
+    for (const job of unsavedJobs) {
+      const jobText = [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      if (!textMap.has(jobText)) {
+        textMap.set(jobText, true);
+        filteredJobs.push({ job, jobText });
+      }
+    }
+
+    // Tính điểm TF-IDF cho các job chưa ứng tuyển
+    const jobScores = await Promise.all(
+      filteredJobs.map(async ({ job, jobText }) => {
+        const tfidfScore = getTfidfScoreRecruiter(jobText, appliedJobDescriptions);
+        return { job, score: tfidfScore };
+      })
+    );
+
+    // Lọc và sắp xếp theo score giảm dần
+    const recommendedJobs = jobScores
+      .filter(item => item && item.score >= 2.4)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(item => item.job);
+
+    // Format dữ liệu trả về
+    const formattedJobs = recommendedJobs.map((job) => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      salary_range: job.salary_range,
+      work_location: job.work_location,
+      deadline: job.deadline,
+      company: job.company,
+      recruiter: job.recruiter,
+    }));
+
+    return res.status(200).json(formattedJobs);
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy recommended jobs theo ứng tuyển:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 module.exports = {
   createJob,
   updateJob,
@@ -530,4 +707,6 @@ module.exports = {
   getJobDetailByAdmin,
   approveJob,
   rejectJob,
+  getRecommendedJobsByCandidate,
+  getRecommendedJobsByAppliedJobs
 };
