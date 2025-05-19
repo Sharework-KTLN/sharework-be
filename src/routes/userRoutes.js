@@ -14,7 +14,8 @@ const {
   getAllCandidates,
   getJobsApplied,
   getAllCandidatesMatchWithJob,
-  updateProfile
+  updateProfile,
+  saveUserSkills
 } = require("../controllers/userController");
 const { verifyToken } = require("../middlewares/authMiddlewares");
 const {uploadImageCandidate} = require("../middlewares/uploadImageMiddleware");
@@ -33,6 +34,7 @@ router.get("/applies", verifyToken, getJobsApplied);
 router.delete("/unsavejob/:jobId", verifyToken, unsaveJobByUser);
 router.put("/:userId/majors", verifyToken, saveUserMajors);
 router.get("/:userId/majors", verifyToken, getUserInterestedMajors);
+router.put("/:userId/skills", verifyToken, saveUserSkills);
 router.get("/:userId/skills", verifyToken, getUserSkills);
 router.put("/profile", verifyToken,  uploadImageCandidate.single("profile_image"),updateProfile);
 //admin
