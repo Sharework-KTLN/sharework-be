@@ -110,22 +110,24 @@ const getTfidfScore = async (text, jobIds) => {
  * @returns {number} - Điểm TF-IDF cao nhất
  */
 const getTfidfScoreRecruiter = (targetText, comparedTexts) => {
-  const tfidf = new Tfidf();
-
-  // Thêm tất cả văn bản vào corpus
-  comparedTexts.forEach((text) => {
-    tfidf.addDocument(text);
-  });
-
-  // So sánh văn bản cần tìm với toàn bộ document
+  const cleanedTargetText = preprocess(targetText);
   let maxScore = 0;
-  tfidf.tfidfs(targetText, (i, measure) => {
-    if (measure > maxScore) {
-      maxScore = measure;
-    }
-  });
+
+  for (const text of comparedTexts) {
+    const tfidf = new Tfidf();
+    tfidf.addDocument(preprocess(text));  // corpus chỉ có 1 document
+
+    let score = 0;
+    tfidf.tfidfs(cleanedTargetText, (i, measure) => {
+      score = measure;  // Chỉ có 1 document, lấy điểm measure
+    });
+
+    if (score > maxScore) maxScore = score;
+  }
 
   return maxScore;
 };
+
+
 
 module.exports = { getTfidfScore, getTfidfScoreRecruiter, getJobDescriptionById, extractMainJobTitle, preprocess};
