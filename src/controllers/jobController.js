@@ -549,19 +549,18 @@ const getRecommendedJobsByCandidate = async (req, res) => {
     const unsavedJobs = jobs.filter((job) => !savedJobIds.includes(job.id));
 
     // Chuẩn bị mô tả các công việc đã lưu để làm "tập so sánh"
-    const savedJobTexts = await Promise.all(
-      savedJobIds.map(async (jobId) => {
-        const job = jobs.find((j) => j.id === jobId);
-        if (!job) return "";
-        return [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
-      })
+    const savedJobTextsRaw = await Promise.all(
+      savedJobIds.map((jobId) => getJobDescriptionById(jobId))
     );
+    // Loại bỏ trùng lặp mô tả đã lưu
+    const savedJobTexts = [...new Set(savedJobTextsRaw)];
 
     // Lọc trùng mô tả công việc chưa lưu
     const textMap = new Map();
     const filteredJobs = [];
     for (const job of unsavedJobs) {
-      const jobText = [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      const jobTextRaw = [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
+      const jobText = preprocess(jobTextRaw); // Tiền xử lý văn bản trước khi xét trùng
       if (!textMap.has(jobText)) {
         textMap.set(jobText, true);
         filteredJobs.push({ job, jobText });
@@ -660,7 +659,7 @@ const getRecommendedJobsByAppliedJobs = async (req, res) => {
       const jobText = [extractMainJobTitle(job.title), job.description].filter(Boolean).join(" ");
       if (!textMap.has(jobText)) {
         textMap.set(jobText, true);
-        filteredJobs.push({ job, jobText });
+        filteredJobs.push({ job, jobText: preprocess(jobTextRaw) });
       }
     }
 
