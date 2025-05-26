@@ -2,3 +2,5 @@
 node_modules/
 # Bỏ qua file .env
 .env
+
+.env.production
